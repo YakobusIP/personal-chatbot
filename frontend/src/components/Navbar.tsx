@@ -9,7 +9,7 @@ export default function Navbar() {
       justifyContent={"center"}
       p={4}
       bgColor={"navbar"}
-      color={"white"}
+      zIndex={2}
     >
       <Heading>Personal Chatbot</Heading>
     </Flex>
