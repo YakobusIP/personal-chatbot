@@ -1,23 +1,105 @@
 import express from "express";
 import { createServer } from "http";
-import { WebSocket } from "ws";
 import router from "./routes/chat.router";
+import { json } from "body-parser";
+import { v4 as uuidv4 } from "uuid";
+import cors from "cors";
+import { Server } from "socket.io";
+import { prisma } from "./prisma";
+import { ChatOpenAI } from "langchain/chat_models/openai";
+import { LLMChain } from "langchain/chains";
+import { PromptTemplate } from "langchain/prompts";
+
+interface Message {
+  id: string;
+  chatId: string;
+  author: string;
+  content: string;
+}
+
+enum ChatRole {
+  USER = "Me",
+  CHATBOT = "ChatGPT"
+}
 
 const app = express();
 
 const server = createServer(app);
 
-const wss = new WebSocket.Server({ server });
-
-wss.on("connection", (ws: WebSocket) => {
-  ws.on("message", (message: string) => {
-    console.log(`Received: ${message}`);
-    ws.send(`Hello, you send ${message}`);
-  });
-
-  ws.send("Connection successful");
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"]
+  }
 });
 
+io.on("connection", (socket) => {
+  console.log(`User connected ${socket.id}`);
+  socket.on("send_message", async (data: Message[]) => {
+    let firstMessage = data.length === 1;
+
+    if (!firstMessage) {
+      await prisma.message.create({
+        data: {
+          id: data[0].id,
+          chatId: data[0].chatId,
+          author: data[0].author,
+          content: data[0].content
+        }
+      });
+    }
+
+    await prisma.message.create({
+      data: {
+        chatId: firstMessage ? data[0].chatId : data[1].chatId,
+        author: firstMessage ? data[0].author : data[1].author,
+        content: firstMessage ? data[0].content : data[1].content
+      }
+    });
+
+    const uuid = uuidv4();
+
+    const model = new ChatOpenAI({
+      temperature: 0.5,
+      modelName: "gpt-3.5-turbo",
+      streaming: true,
+      callbacks: [
+        {
+          handleLLMNewToken(token) {
+            socket.emit("receive_message", {
+              chatId: firstMessage ? data[0].chatId : data[1].chatId,
+              id: uuid,
+              author: ChatRole.CHATBOT,
+              content: token
+            });
+          }
+        }
+      ]
+    });
+
+    const prompt_template = `You are a helpful chatbot that performs like ChatGPT.
+      Follow up input: {question}
+      AI:`;
+
+    const prompt = new PromptTemplate({
+      inputVariables: ["question"],
+      template: prompt_template
+    });
+
+    const chain = new LLMChain({
+      llm: model,
+      prompt,
+      verbose: true
+    });
+
+    await chain.call({
+      question: firstMessage ? data[0].content : data[1].content
+    });
+  });
+});
+
+app.use(json());
+app.use(cors({ origin: "http://localhost:5173" }));
 app.use(router);
 
 server.listen(process.env.PORT, () => {
