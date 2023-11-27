@@ -5,7 +5,7 @@ import {
   InputRightElement,
   Textarea
 } from "@chakra-ui/react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { IoIosSend } from "react-icons/io";
 
 interface Props {
@@ -14,6 +14,8 @@ interface Props {
 
 export default function ChatInput({ sendInput }: Props) {
   const [input, setInput] = useState("");
+  const [rows, setRows] = useState(1);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const pushInput = useCallback(
     (input: string) => {
@@ -41,10 +43,27 @@ export default function ChatInput({ sendInput }: Props) {
     };
   }, [input, pushInput]);
 
+  const onTextValueChange = () => {
+    if (textAreaRef.current) {
+      const text = textAreaRef.current.value;
+      const lineLength = 80;
+
+      let rows = Math.ceil(text.length / lineLength);
+
+      if (rows === 0) {
+        rows = 1;
+      } else if (rows > 5) {
+        rows = 5;
+      }
+
+      setRows(rows);
+    }
+  };
+
   return (
     <Flex
       position={"sticky"}
-      w={"60%"}
+      w={"50%"}
       bottom={0}
       justifyContent={"center"}
       p={8}
@@ -52,11 +71,15 @@ export default function ChatInput({ sendInput }: Props) {
     >
       <InputGroup>
         <Textarea
+          ref={textAreaRef}
           resize={"none"}
+          rows={rows}
           autoFocus
-          rows={5}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            onTextValueChange();
+          }}
         />
         <InputRightElement _hover={{ cursor: "pointer" }} px={8}>
           <Icon as={IoIosSend} boxSize={6} onClick={() => pushInput(input)} />

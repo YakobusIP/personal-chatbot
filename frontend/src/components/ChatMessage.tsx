@@ -10,7 +10,7 @@ export default function ChatMessage({ author, content }: Props) {
     <Flex
       direction={"column"}
       position={"sticky"}
-      w={"60%"}
+      w={"50%"}
       bottom={0}
       justifyContent={"center"}
       p={8}

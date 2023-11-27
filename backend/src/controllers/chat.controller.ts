@@ -71,7 +71,6 @@ export const addRecentGPTMessage: RequestHandler = async (req, res) => {
   try {
     await prisma.message.create({
       data: {
-        id: data.id,
         chatId: data.chatId,
         author: data.author,
         content: data.content
