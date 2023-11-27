@@ -1,15 +1,12 @@
 import {
   Flex,
   Icon,
-  Input,
   InputGroup,
   InputRightElement,
   Textarea
 } from "@chakra-ui/react";
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { IoIosSend } from "react-icons/io";
-import { v4 as uuidv4 } from "uuid";
-import axios from "axios";
 
 interface Props {
   sendInput: (input: string) => void;
@@ -54,12 +51,14 @@ export default function ChatInput({ sendInput }: Props) {
       bgColor={"main"}
     >
       <InputGroup>
-        <Input
+        <Textarea
+          resize={"none"}
           autoFocus
+          rows={5}
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
-        <InputRightElement _hover={{ cursor: "pointer" }}>
+        <InputRightElement _hover={{ cursor: "pointer" }} px={8}>
           <Icon as={IoIosSend} boxSize={6} onClick={() => pushInput(input)} />
         </InputRightElement>
       </InputGroup>

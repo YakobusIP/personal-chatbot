@@ -3,7 +3,7 @@ import RootLayout from "../components/RootLayout";
 import { useParams } from "react-router-dom";
 import ChatInput from "@/components/ChatInput";
 import ChatMessage from "@/components/ChatMessage";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import { Socket } from "socket.io-client";
@@ -30,6 +30,11 @@ export default function Chat({ socket }: Props) {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const lastMessageTimeRef = useRef<number>();
+  const quietTimePeriodTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const [quietPeriodPassed, setQuietPeriodPassed] = useState(false);
 
   const fetchChatHistory = useCallback(
     async (chatId: string) => {
@@ -69,6 +74,18 @@ export default function Chat({ socket }: Props) {
 
   useEffect(() => {
     socket.on("receive_message", (data: Message) => {
+      lastMessageTimeRef.current = Date.now();
+
+      setQuietPeriodPassed(false);
+
+      if (quietTimePeriodTimeoutRef.current) {
+        clearTimeout(quietTimePeriodTimeoutRef.current);
+      }
+
+      quietTimePeriodTimeoutRef.current = setTimeout(() => {
+        setQuietPeriodPassed(true);
+      }, 3000);
+
       setMessages((prevMessages) => {
         const existingMessageIndex = prevMessages.findIndex(
           (message) => message.id === data.id
@@ -103,33 +120,22 @@ export default function Chat({ socket }: Props) {
     });
     return () => {
       socket.off("receive_message");
+
+      if (quietTimePeriodTimeoutRef.current) {
+        clearTimeout(quietTimePeriodTimeoutRef.current);
+      }
     };
   }, [socket]);
 
   const sendMessage = (input: string) => {
     setLoading(true);
     if (input.length > 0) {
-      const socketMessage: Message[] = [];
-
-      if (messages.length > 0) {
-        const oldMessage: Message = {
-          chatId: messages[messages.length - 1].chatId,
-          id: messages[messages.length - 1].id,
-          author: messages[messages.length - 1].author,
-          content: messages[messages.length - 1].content
-        };
-
-        socketMessage.push(oldMessage);
-      }
-
       const data: Message = {
         chatId: id as string,
         id: uuidv4(),
         author: ChatRole.USER,
         content: input
       };
-
-      socketMessage.push(data);
 
       setMessages((prevMessage) => [
         ...prevMessage,
@@ -141,9 +147,41 @@ export default function Chat({ socket }: Props) {
         }
       ]);
 
-      socket.emit("send_message", socketMessage);
+      socket.emit("send_message", data);
     }
   };
+
+  useEffect(() => {
+    const sendRecentGPT = async () => {
+      if (quietPeriodPassed) {
+        try {
+          const gptMessages = messages.filter(
+            (message) => message.author === ChatRole.CHATBOT
+          );
+          const response = await axios.post(
+            "http://localhost:4000/recent-message",
+            { message: gptMessages[gptMessages.length - 1] }
+          );
+
+          toast({
+            title: response.data.message,
+            status: "success",
+            duration: 2000,
+            position: "top"
+          });
+        } catch (e) {
+          toast({
+            title: "Error",
+            status: "error",
+            duration: 2000,
+            position: "top"
+          });
+        }
+      }
+    };
+
+    sendRecentGPT();
+  }, [messages, quietPeriodPassed, toast]);
 
   return (
     <RootLayout>

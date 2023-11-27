@@ -3,7 +3,7 @@ import {
   getChatRooms,
   createNewChat,
   getChatHistory,
-  sendChat
+  addRecentGPTMessage
 } from "../controllers/chat.controller";
 
 const router = Router();
@@ -11,6 +11,6 @@ const router = Router();
 router.get("/room-list", getChatRooms);
 router.get("/chat/:id", getChatHistory);
 router.post("/new-chat", createNewChat);
-router.post("/ask-question", sendChat);
+router.post("/recent-message", addRecentGPTMessage);
 
 export default router;

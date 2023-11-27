@@ -35,25 +35,12 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log(`User connected ${socket.id}`);
-  socket.on("send_message", async (data: Message[]) => {
-    let firstMessage = data.length === 1;
-
-    if (!firstMessage) {
-      await prisma.message.create({
-        data: {
-          id: data[0].id,
-          chatId: data[0].chatId,
-          author: data[0].author,
-          content: data[0].content
-        }
-      });
-    }
-
+  socket.on("send_message", async (data: Message) => {
     await prisma.message.create({
       data: {
-        chatId: firstMessage ? data[0].chatId : data[1].chatId,
-        author: firstMessage ? data[0].author : data[1].author,
-        content: firstMessage ? data[0].content : data[1].content
+        chatId: data.chatId,
+        author: data.author,
+        content: data.content
       }
     });
 
@@ -61,13 +48,13 @@ io.on("connection", (socket) => {
 
     const model = new ChatOpenAI({
       temperature: 0.5,
-      modelName: "gpt-3.5-turbo",
+      modelName: "gpt-4-1106-preview",
       streaming: true,
       callbacks: [
         {
           handleLLMNewToken(token) {
             socket.emit("receive_message", {
-              chatId: firstMessage ? data[0].chatId : data[1].chatId,
+              chatId: data.chatId,
               id: uuid,
               author: ChatRole.CHATBOT,
               content: token
@@ -78,8 +65,8 @@ io.on("connection", (socket) => {
     });
 
     const prompt_template = `You are a helpful chatbot that performs like ChatGPT.
-      Follow up input: {question}
-      AI:`;
+        Follow up input: {question}
+        AI:`;
 
     const prompt = new PromptTemplate({
       inputVariables: ["question"],
@@ -93,7 +80,7 @@ io.on("connection", (socket) => {
     });
 
     await chain.call({
-      question: firstMessage ? data[0].content : data[1].content
+      question: data.content
     });
   });
 });

@@ -6,7 +6,24 @@ export const colors = {
 };
 
 const theme = extendTheme({
-  colors
+  colors,
+  styles: {
+    global: {
+      "*": {
+        "&::-webkit-scrollbar": {
+          w: "2",
+          h: "1.5"
+        },
+        "&::-webkit-scrollbar-track": {
+          backgroundColor: "black"
+        },
+        "&::-webkit-scrollbar-thumb": {
+          backgroundColor: "white",
+          borderRadius: "4"
+        }
+      }
+    }
+  }
 });
 
 export default theme;

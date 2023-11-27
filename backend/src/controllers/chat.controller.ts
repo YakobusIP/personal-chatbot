@@ -58,73 +58,31 @@ export const getChatHistory: RequestHandler = async (req, res) => {
   }
 };
 
-enum ChatRole {
-  USER = "Me",
-  CHATBOT = "ChatGPT"
+interface Message {
+  chatId: string;
+  id: string;
+  author: string;
+  content: string;
 }
 
-export const sendChat: RequestHandler = async (req, res) => {
-  const request = req.body;
+export const addRecentGPTMessage: RequestHandler = async (req, res) => {
+  const data: Message = req.body.message;
 
   try {
     await prisma.message.create({
       data: {
-        chatId: request.id,
-        author: ChatRole.USER,
-        content: request.question
+        id: data.id,
+        chatId: data.chatId,
+        author: data.author,
+        content: data.content
       }
     });
 
-    // const model = new ChatOpenAI({
-    //   temperature: 0.5,
-    //   modelName: "gpt-4",
-    //   streaming: true,
-    //   callbacks: [
-    //     {
-    //       handleLLMNewToken(token) {
-    //         const response: Message = {
-    //           chatId: request.chatId,
-    //           author: "ChatGPT",
-    //           content: token
-    //         };
-    //         ws.send(JSON.stringify(response));
-    //       }
-    //     }
-    //   ]
-    // });
-
-    // const prompt_template = `You are a helpful chatbot that performs like ChatGPT.
-    //   Follow up input: {question}
-    //   AI:`;
-
-    // const prompt = new PromptTemplate({
-    //   inputVariables: ["question"],
-    //   template: prompt_template
-    // });
-
-    // const chain = new LLMChain({
-    //   llm: model,
-    //   prompt,
-    //   verbose: true
-    // });
-
-    // await chain.call({ question: request.content });
-
-    // ws.send("Successfully added");
-
-    const data = await prisma.message.create({
-      data: {
-        chatId: request.id,
-        author: ChatRole.CHATBOT,
-        content: "Hello!"
-      }
-    });
-
-    res.status(200).json({ data });
+    res.status(201).json({ message: "Recent chat added" });
   } catch (e) {
     console.error(e);
     res.status(500).json({
-      message: "Failed to fetch chat history"
+      message: "Failed to add recent GPT message"
     });
   }
 };

@@ -2,11 +2,10 @@ import { Flex, Heading, Text } from "@chakra-ui/react";
 
 interface Props {
   author: string;
-  id: string;
   content: string;
 }
 
-export default function ChatMessage({ author, id, content }: Props) {
+export default function ChatMessage({ author, content }: Props) {
   return (
     <Flex
       direction={"column"}
@@ -18,8 +17,7 @@ export default function ChatMessage({ author, id, content }: Props) {
       rowGap={2}
     >
       <Heading fontSize={20}>{author}</Heading>
-      <Text>{id}</Text>
-      <Text>{content}</Text>
+      <Text whiteSpace={"pre-wrap"}>{content}</Text>
     </Flex>
   );
 }
