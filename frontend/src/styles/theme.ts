@@ -1,15 +1,14 @@
-import { extendTheme } from "@chakra-ui/react";
+import { ThemeConfig, extendTheme } from "@chakra-ui/react";
+import { colors } from "@/styles/colors";
 
-export const colors = {
-  navbar: {
-    main: "#2C3E50",
-    light: "#597a9c"
-  },
-  main: "#1D2731"
+const config: ThemeConfig = {
+  initialColorMode: "dark",
+  useSystemColorMode: false
 };
 
 const theme = extendTheme({
   colors,
+  config,
   styles: {
     global: {
       "*": {

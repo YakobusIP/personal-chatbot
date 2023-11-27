@@ -3,7 +3,8 @@ import {
   Icon,
   InputGroup,
   InputRightElement,
-  Textarea
+  Textarea,
+  useColorMode
 } from "@chakra-ui/react";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { IoIosSend } from "react-icons/io";
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function ChatInput({ sendInput }: Props) {
+  const { colorMode } = useColorMode();
   const [input, setInput] = useState("");
   const [rows, setRows] = useState(1);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
@@ -46,7 +48,7 @@ export default function ChatInput({ sendInput }: Props) {
   const onTextValueChange = () => {
     if (textAreaRef.current) {
       const text = textAreaRef.current.value;
-      const lineLength = 80;
+      const lineLength = 90;
 
       let rows = Math.ceil(text.length / lineLength);
 
@@ -67,7 +69,7 @@ export default function ChatInput({ sendInput }: Props) {
       bottom={0}
       justifyContent={"center"}
       p={8}
-      bgColor={"main"}
+      bgColor={colorMode === "dark" ? "background.dark" : "background.light"}
     >
       <InputGroup>
         <Textarea

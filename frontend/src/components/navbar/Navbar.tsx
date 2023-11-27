@@ -3,6 +3,7 @@ import {
   Heading,
   Icon,
   Image,
+  useColorMode,
   useDisclosure,
   useToast
 } from "@chakra-ui/react";
@@ -12,10 +13,12 @@ import { RxHamburgerMenu } from "react-icons/rx";
 import { useState, useEffect, useCallback } from "react";
 import NavbarDrawer from "@/components/navbar/Drawer";
 import Room from "@/types/room.type";
+import ColorSwitch from "./ColorSwitch";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const toast = useToast();
+  const { colorMode } = useColorMode();
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -46,26 +49,29 @@ export default function Navbar() {
       w={"full"}
       top={0}
       p={4}
-      bgColor={"navbar.main"}
+      bgColor={colorMode === "dark" ? "navbar.dark" : "navbar.light"}
       alignItems={"center"}
+      justifyContent={"space-between"}
       zIndex={2}
-      columnGap={4}
     >
-      <Icon
-        as={RxHamburgerMenu}
-        boxSize={6}
-        _hover={{ cursor: "pointer" }}
-        onClick={onOpen}
-      />
-      <Flex
-        onClick={() => navigate("/")}
-        _hover={{ cursor: "pointer" }}
-        alignItems={"center"}
-        columnGap={2}
-      >
-        <Image src="/gpt-black-logo.jpg" boxSize={8} />
-        <Heading fontSize={"xl"}>Personal Chatbot</Heading>
+      <Flex alignItems={"center"} columnGap={4}>
+        <Icon
+          as={RxHamburgerMenu}
+          boxSize={6}
+          _hover={{ cursor: "pointer" }}
+          onClick={onOpen}
+        />
+        <Flex
+          onClick={() => navigate("/")}
+          _hover={{ cursor: "pointer" }}
+          alignItems={"center"}
+          columnGap={2}
+        >
+          <Image src="/gpt-black-logo.jpg" boxSize={8} />
+          <Heading fontSize={"xl"}>Personal Chatbot</Heading>
+        </Flex>
       </Flex>
+      <ColorSwitch />
       <NavbarDrawer rooms={rooms} isOpen={isOpen} onClose={onClose} />
     </Flex>
   );

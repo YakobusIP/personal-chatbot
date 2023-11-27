@@ -9,7 +9,8 @@ import {
   Image,
   Heading,
   DrawerBody,
-  VStack
+  VStack,
+  useColorMode
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import RoomNumber from "@/components/RoomNumber";
@@ -21,10 +22,13 @@ interface Props {
 }
 
 export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
+  const { colorMode } = useColorMode();
   return (
     <Drawer isOpen={isOpen} onClose={onClose} placement="left">
       <DrawerOverlay />
-      <DrawerContent bgColor={"navbar.main"} color={"white"}>
+      <DrawerContent
+        bgColor={colorMode === "dark" ? "navbar.dark" : "navbar.light"}
+      >
         <DrawerHeader>
           <Flex alignItems={"center"} columnGap={4}>
             <Icon
