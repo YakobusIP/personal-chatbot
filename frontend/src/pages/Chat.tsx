@@ -1,4 +1,11 @@
-import { Flex, Spinner, useToast } from "@chakra-ui/react";
+import {
+  Button,
+  Flex,
+  Icon,
+  Spinner,
+  useColorMode,
+  useToast
+} from "@chakra-ui/react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -9,6 +16,7 @@ import ChatInput from "@/components/chat/ChatInput";
 import ChatMessage from "@/components/chat/ChatMessage";
 import Message from "@/types/message.type";
 import { ChatRole } from "@/enum/chatrole.enum";
+import { IoMdArrowDown } from "react-icons/io";
 
 interface Props {
   socket: Socket;
@@ -17,6 +25,7 @@ interface Props {
 export default function Chat({ socket }: Props) {
   const toast = useToast();
   const { id } = useParams();
+  const { colorMode } = useColorMode();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -173,6 +182,14 @@ export default function Chat({ socket }: Props) {
     sendRecentGPT();
   }, [messages, quietPeriodPassed, toast]);
 
+  const scrollToBottom = () => {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      left: 0,
+      behavior: "smooth"
+    });
+  };
+
   return (
     <RootLayout>
       <Flex
@@ -196,6 +213,19 @@ export default function Chat({ socket }: Props) {
         {loading && <Spinner />}
       </Flex>
       <ChatInput sendInput={(input) => sendMessage(input)} />
+      <Button
+        position={"fixed"}
+        zIndex={2}
+        bottom={8}
+        right={8}
+        bgColor={colorMode === "dark" ? "navbar.dark" : "navbar.light"}
+        height={"48px"}
+        width={"48px"}
+        borderRadius={"50%"}
+        onClick={scrollToBottom}
+      >
+        <Icon as={IoMdArrowDown} boxSize={8} />
+      </Button>
     </RootLayout>
   );
 }

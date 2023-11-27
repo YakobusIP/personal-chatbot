@@ -10,6 +10,7 @@ export default function RootLayout({
   const { colorMode } = useColorMode();
   return (
     <VStack
+      position={"relative"}
       w={"full"}
       bgColor={colorMode === "dark" ? "background.dark" : "background.light"}
       minH={"100vh"}

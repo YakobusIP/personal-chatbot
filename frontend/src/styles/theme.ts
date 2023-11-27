@@ -17,11 +17,14 @@ const theme = extendTheme({
           h: "1.5"
         },
         "&::-webkit-scrollbar-track": {
-          backgroundColor: "black"
+          backgroundColor: "#A0A0A0"
         },
         "&::-webkit-scrollbar-thumb": {
-          backgroundColor: "white",
+          backgroundColor: "#606060",
           borderRadius: "4"
+        },
+        "&::-webkit-scrollbar-thumb:hover": {
+          backgroundColor: "#505050"
         }
       }
     }

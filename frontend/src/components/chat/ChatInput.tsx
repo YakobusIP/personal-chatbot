@@ -24,6 +24,12 @@ export default function ChatInput({ sendInput }: Props) {
       if (input.length > 0) {
         sendInput(input);
         setInput("");
+
+        window.scrollTo({
+          top: document.body.scrollHeight,
+          left: 0,
+          behavior: "smooth"
+        });
       }
     },
     [sendInput]
@@ -65,13 +71,13 @@ export default function ChatInput({ sendInput }: Props) {
   return (
     <Flex
       position={"sticky"}
-      w={"50%"}
+      w={"full"}
       bottom={0}
       justifyContent={"center"}
       p={8}
       bgColor={colorMode === "dark" ? "background.dark" : "background.light"}
     >
-      <InputGroup>
+      <InputGroup w={"50%"}>
         <Textarea
           ref={textAreaRef}
           resize={"none"}

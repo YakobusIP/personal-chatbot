@@ -1,5 +1,6 @@
 import { ChatRole } from "@/enum/chatrole.enum";
 import { Avatar, Flex, Heading, Text } from "@chakra-ui/react";
+import Markdown from "react-markdown";
 
 interface Props {
   author: string;
@@ -14,22 +15,21 @@ export default function ChatMessage({ author, content }: Props) {
       w={"50%"}
       bottom={0}
       justifyContent={"center"}
-      p={8}
+      py={8}
+      px={8}
       rowGap={4}
     >
       <Flex alignItems={"center"} columnGap={4}>
         <Avatar
           name={author}
           size={"sm"}
-          src={
-            author === ChatRole.CHATBOT
-              ? "/public/gpt-black-logo.jpg"
-              : undefined
-          }
+          src={author === ChatRole.CHATBOT ? "/gpt-black-logo.jpg" : undefined}
         />
         <Heading fontSize={20}>{author}</Heading>
       </Flex>
-      <Text whiteSpace={"pre-wrap"}>{content}</Text>
+      <Text whiteSpace={"pre-wrap"}>
+        <Markdown>{content}</Markdown>
+      </Text>
     </Flex>
   );
 }
