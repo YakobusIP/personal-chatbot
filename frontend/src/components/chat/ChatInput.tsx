@@ -73,6 +73,7 @@ export default function ChatInput({ sendInput }: Props) {
         <Textarea
           ref={textAreaRef}
           resize={"none"}
+          placeholder="Message personal chatbot..."
           rows={rows}
           autoFocus
           value={input}

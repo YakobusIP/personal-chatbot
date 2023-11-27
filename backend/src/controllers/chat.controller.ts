@@ -46,6 +46,9 @@ export const getChatHistory: RequestHandler = async (req, res) => {
         chatId: true,
         author: true,
         content: true
+      },
+      orderBy: {
+        createdAt: "asc"
       }
     });
 

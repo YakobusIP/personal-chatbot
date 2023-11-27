@@ -1,20 +1,10 @@
-import {
-  Button,
-  Flex,
-  Heading,
-  useToast,
-  Spinner,
-  Text
-} from "@chakra-ui/react";
-import RootLayout from "../components/RootLayout";
-import { useState, useEffect, useCallback } from "react";
+import { Button, Flex, Heading, useToast, Spinner } from "@chakra-ui/react";
 import axios from "axios";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-
-interface Room {
-  id: string;
-  topic: string | null;
-}
+import RootLayout from "@/components/RootLayout";
+import RoomNumber from "@/components/RoomNumber";
+import Room from "@/types/room.type";
 
 export default function Home() {
   const toast = useToast();
@@ -83,18 +73,7 @@ export default function Home() {
         ) : (
           rooms &&
           rooms.map((room) => {
-            return (
-              <Flex
-                key={room.id}
-                _hover={{ cursor: "pointer" }}
-                onClick={() => navigate(`/chat/${room.id}`)}
-                bgColor={"navbar"}
-                p={4}
-                rounded={"lg"}
-              >
-                <Text>{room.id}</Text>
-              </Flex>
-            );
+            return <RoomNumber id={room.id} />;
           })
         )}
         <Button onClick={() => createNewRoom()}>Create new chat</Button>

@@ -1,27 +1,17 @@
 import { Flex, Spinner, useToast } from "@chakra-ui/react";
-import RootLayout from "../components/RootLayout";
+import axios from "axios";
 import { useParams } from "react-router-dom";
-import ChatInput from "@/components/ChatInput";
-import ChatMessage from "@/components/ChatMessage";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import axios from "axios";
 import { Socket } from "socket.io-client";
-
-interface Message {
-  chatId: string;
-  id: string;
-  author: string;
-  content: string;
-}
+import RootLayout from "@/components/RootLayout";
+import ChatInput from "@/components/chat/ChatInput";
+import ChatMessage from "@/components/chat/ChatMessage";
+import Message from "@/types/message.type";
+import { ChatRole } from "@/enum/chatrole.enum";
 
 interface Props {
   socket: Socket;
-}
-
-enum ChatRole {
-  USER = "Me",
-  CHATBOT = "ChatGPT"
 }
 
 export default function Chat({ socket }: Props) {

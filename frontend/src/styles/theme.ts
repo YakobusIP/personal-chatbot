@@ -1,7 +1,10 @@
 import { extendTheme } from "@chakra-ui/react";
 
 export const colors = {
-  navbar: "#2C3E50",
+  navbar: {
+    main: "#2C3E50",
+    light: "#597a9c"
+  },
   main: "#1D2731"
 };
 
