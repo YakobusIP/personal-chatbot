@@ -1,5 +1,5 @@
 import { Button, Flex, Heading, useToast, Spinner } from "@chakra-ui/react";
-import axios from "axios";
+import { axiosClient } from "@/lib/axios";
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import RootLayout from "@/components/RootLayout";
@@ -16,7 +16,7 @@ export default function Home() {
   const fetchRooms = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:4000/room-list");
+      const response = await axiosClient.get("/room-list");
 
       setRoom(response.data.data);
     } catch (error) {
@@ -36,7 +36,7 @@ export default function Home() {
 
   const createNewRoom = async () => {
     try {
-      const response = await axios.post("http://localhost:4000/new-chat");
+      const response = await axiosClient.post("/new-chat");
 
       navigate(`/chat/${response.data.data.id}`);
 

@@ -7,7 +7,7 @@ import {
   useDisclosure,
   useToast
 } from "@chakra-ui/react";
-import axios from "axios";
+import { axiosClient } from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { useState, useEffect, useCallback } from "react";
@@ -26,7 +26,7 @@ export default function Navbar() {
 
   const fetchRooms = useCallback(async () => {
     try {
-      const response = await axios.get("http://localhost:4000/room-list");
+      const response = await axiosClient.get("/room-list");
 
       setRoom(response.data.data);
     } catch (error) {

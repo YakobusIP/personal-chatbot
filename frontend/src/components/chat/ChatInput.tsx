@@ -30,6 +30,8 @@ export default function ChatInput({ sendInput }: Props) {
           left: 0,
           behavior: "smooth"
         });
+
+        setRows(1);
       }
     },
     [sendInput]
@@ -37,7 +39,7 @@ export default function ChatInput({ sendInput }: Props) {
 
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
-      if (event.key === "Enter") {
+      if (!event.shiftKey && event.key === "Enter") {
         event.preventDefault();
 
         pushInput(input);
@@ -49,7 +51,7 @@ export default function ChatInput({ sendInput }: Props) {
     return () => {
       document.removeEventListener("keydown", keyDownHandler);
     };
-  }, [input, pushInput]);
+  }, [input, pushInput, setRows, rows]);
 
   const onTextValueChange = () => {
     if (textAreaRef.current) {

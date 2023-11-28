@@ -2,7 +2,7 @@ pre {
   overflow: auto;
 }
 
-ul,
-ol {
+ol,
+ul {
   list-style-position: inside;
 }

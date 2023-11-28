@@ -1,5 +1,6 @@
 import { ChatRole } from "@/enum/chatrole.enum";
-import { Avatar, Flex, Heading, Text } from "@chakra-ui/react";
+import { Avatar, Flex, Heading, Text, useColorMode } from "@chakra-ui/react";
+import React from "react";
 import Markdown from "react-markdown";
 
 interface Props {
@@ -7,7 +8,28 @@ interface Props {
   content: string;
 }
 
+interface ComponentProps {
+  children: React.ReactNode;
+}
+
 export default function ChatMessage({ author, content }: Props) {
+  const { colorMode } = useColorMode();
+  const cleanUL = content.replaceAll(/\n\n-/g, "\n-");
+  const cleanOL = cleanUL.replaceAll(/\n\s*\n(\d+)/g, "\n$1");
+
+  const components: React.FC<ComponentProps> = (props) => {
+    return (
+      <pre
+        style={{
+          backgroundColor: colorMode === "dark" ? "#2d2d2d" : "#f5f5f5",
+          padding: "1rem",
+          borderRadius: "0.5rem"
+        }}
+      >
+        {props.children}
+      </pre>
+    );
+  };
   return (
     <Flex
       direction={"column"}
@@ -28,7 +50,9 @@ export default function ChatMessage({ author, content }: Props) {
         <Heading fontSize={20}>{author}</Heading>
       </Flex>
       <Text whiteSpace={"pre-wrap"}>
-        <Markdown>{content}</Markdown>
+        <Markdown unwrapDisallowed={true} components={{ pre: components }}>
+          {cleanOL}
+        </Markdown>
       </Text>
     </Flex>
   );

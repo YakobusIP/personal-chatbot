@@ -6,11 +6,11 @@ import {
   useColorMode,
   useToast
 } from "@chakra-ui/react";
-import axios from "axios";
+import { axiosClient } from "@/lib/axios";
 import { useParams } from "react-router-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Socket } from "socket.io-client";
+import io from "socket.io-client";
 import RootLayout from "@/components/RootLayout";
 import ChatInput from "@/components/chat/ChatInput";
 import ChatMessage from "@/components/chat/ChatMessage";
@@ -18,11 +18,9 @@ import Message from "@/types/message.type";
 import { ChatRole } from "@/enum/chatrole.enum";
 import { IoMdArrowDown } from "react-icons/io";
 
-interface Props {
-  socket: Socket;
-}
+const socket = io(import.meta.env.VITE_BASE_WS_URL);
 
-export default function Chat({ socket }: Props) {
+export default function Chat() {
   const toast = useToast();
   const { id } = useParams();
   const { colorMode } = useColorMode();
@@ -38,9 +36,7 @@ export default function Chat({ socket }: Props) {
   const fetchChatHistory = useCallback(
     async (chatId: string) => {
       try {
-        const response = await axios.get(
-          `http://localhost:4000/chat/${chatId}`
-        );
+        const response = await axiosClient.get(`/chat/${chatId}`);
 
         const messageArray = response.data.data as Message[];
 
@@ -124,7 +120,7 @@ export default function Chat({ socket }: Props) {
         clearTimeout(quietTimePeriodTimeoutRef.current);
       }
     };
-  }, [socket]);
+  }, []);
 
   const sendMessage = (input: string) => {
     setLoading(true);
@@ -157,10 +153,9 @@ export default function Chat({ socket }: Props) {
           const gptMessages = messages.filter(
             (message) => message.author === ChatRole.CHATBOT
           );
-          const response = await axios.post(
-            "http://localhost:4000/recent-message",
-            { message: gptMessages[gptMessages.length - 1] }
-          );
+          const response = await axiosClient.post("/recent-message", {
+            message: gptMessages[gptMessages.length - 1]
+          });
 
           toast({
             title: response.data.message,
