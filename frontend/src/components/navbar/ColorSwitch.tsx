@@ -1,12 +1,11 @@
 import { Flex, Icon, Switch, useColorMode } from "@chakra-ui/react";
-import { FaRegMoon } from "react-icons/fa6";
-import { IoSunnyOutline } from "react-icons/io5";
+import { IoSunnyOutline, IoMoonOutline } from "react-icons/io5";
 
 export default function ColorSwitch() {
   const { colorMode, toggleColorMode } = useColorMode();
   return (
     <Flex alignItems={"center"} columnGap={2}>
-      <Icon as={FaRegMoon} boxSize={6} />
+      <Icon as={IoMoonOutline} boxSize={6} />
       <Switch
         onChange={toggleColorMode}
         size={"md"}

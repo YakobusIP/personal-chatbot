@@ -50,6 +50,7 @@ export default function ChatMessage({ author, content }: Props) {
         <Heading fontSize={20}>{author}</Heading>
       </Flex>
       <Text whiteSpace={"pre-wrap"}>
+        {/* @ts-expect-error Unknown props type on react markdown */}
         <Markdown unwrapDisallowed={true} components={{ pre: components }}>
           {cleanOL}
         </Markdown>
