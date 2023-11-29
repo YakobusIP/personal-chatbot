@@ -1,14 +1,16 @@
 import express from "express";
 import { createServer } from "http";
-import router from "./routes/chat.router";
+import chatRouter from "./routes/chat.router";
+import authRouter from "./routes/auth.router";
 import { json } from "body-parser";
 import { v4 as uuidv4 } from "uuid";
 import cors from "cors";
 import { Server } from "socket.io";
-import { prisma } from "./prisma";
+import { prisma } from "./lib/prisma";
 import { ChatOpenAI } from "langchain/chat_models/openai";
 import { LLMChain } from "langchain/chains";
 import { PromptTemplate } from "langchain/prompts";
+import { errorMiddleware } from "./middleware/error.middleware";
 
 interface Message {
   id: string;
@@ -87,7 +89,10 @@ io.on("connection", (socket) => {
 
 app.use(json());
 app.use(cors({ origin: "http://localhost:5173" }));
-app.use(router);
+app.use(authRouter);
+app.use(chatRouter);
+
+app.use(errorMiddleware);
 
 server.listen(process.env.PORT, () => {
   console.log(`Server started on port ${process.env.PORT}`);

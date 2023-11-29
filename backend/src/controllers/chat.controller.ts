@@ -1,41 +1,50 @@
-import { Request, RequestHandler, Response } from "express";
-import { prisma } from "../prisma";
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { LLMChain } from "langchain/chains";
-import { PromptTemplate } from "langchain/prompts";
+import { RequestHandler } from "express";
+import { prisma } from "../lib/prisma";
+import ServerSideError from "../custom-errors/server-side-error";
+import { StatusCode } from "../enum/status-code.enum";
 
-export const getChatRooms: RequestHandler = async (req, res) => {
+export const getChatRooms: RequestHandler = async (req, res, next) => {
+  const { userId } = req.body;
+
   try {
     const data = await prisma.chat.findMany({
+      where: {
+        userId
+      },
       select: { id: true, topic: true }
     });
 
-    res.status(200).json({ data });
+    res.status(StatusCode.SUCCESS).json({ data });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Fail to fetch rooms"
-    });
+    return next(
+      new ServerSideError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        "Failed to fetch chat rooms"
+      )
+    );
   }
 };
 
-export const createNewChat: RequestHandler = async (_, res) => {
-  try {
-    const data = await prisma.chat.create({});
+export const createNewChat: RequestHandler = async (req, res, next) => {
+  const { userId } = req.body;
 
-    res.status(201).json({
-      data,
+  try {
+    await prisma.chat.create({ data: { userId } });
+
+    res.status(StatusCode.CREATED).json({
       message: "Chat successfully created"
     });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Failed to create chat"
-    });
+    return next(
+      new ServerSideError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        "Failed to create chat"
+      )
+    );
   }
 };
 
-export const getChatHistory: RequestHandler = async (req, res) => {
+export const getChatHistory: RequestHandler = async (req, res, next) => {
   const id = req.params.id;
 
   try {
@@ -52,12 +61,14 @@ export const getChatHistory: RequestHandler = async (req, res) => {
       }
     });
 
-    res.status(200).json({ data });
+    res.status(StatusCode.SUCCESS).json({ data });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Failed to fetch chat history"
-    });
+    return next(
+      new ServerSideError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        "Failed to fetch chat history"
+      )
+    );
   }
 };
 
@@ -68,7 +79,7 @@ interface Message {
   content: string;
 }
 
-export const addRecentGPTMessage: RequestHandler = async (req, res) => {
+export const addRecentGPTMessage: RequestHandler = async (req, res, next) => {
   const data: Message = req.body.message;
 
   try {
@@ -80,11 +91,13 @@ export const addRecentGPTMessage: RequestHandler = async (req, res) => {
       }
     });
 
-    res.status(201).json({ message: "Recent chat added" });
+    res.status(StatusCode.CREATED).json({ message: "Recent chat saved" });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Failed to add recent GPT message"
-    });
+    return next(
+      new ServerSideError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        "Failed to save recent chat"
+      )
+    );
   }
 };

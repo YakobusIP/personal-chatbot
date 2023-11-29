@@ -17,6 +17,7 @@ import ChatMessage from "@/components/chat/ChatMessage";
 import Message from "@/types/message.type";
 import { ChatRole } from "@/enum/chatrole.enum";
 import { IoMdArrowDown } from "react-icons/io";
+import { AxiosError } from "axios";
 
 const socket = io(import.meta.env.VITE_BASE_WS_URL);
 
@@ -52,12 +53,15 @@ export default function Chat() {
           ]);
         });
       } catch (error) {
-        toast({
-          title: "Error",
-          status: "error",
-          duration: 2000,
-          position: "top"
-        });
+        if (error instanceof AxiosError && error.response) {
+          toast({
+            title: "Error",
+            description: error.response.data.message,
+            status: "error",
+            duration: 2000,
+            position: "top"
+          });
+        }
       }
     },
     [toast]
@@ -158,18 +162,22 @@ export default function Chat() {
           });
 
           toast({
-            title: response.data.message,
+            title: "Success",
+            description: response.data.message,
             status: "success",
             duration: 2000,
             position: "top"
           });
-        } catch (e) {
-          toast({
-            title: "Error",
-            status: "error",
-            duration: 2000,
-            position: "top"
-          });
+        } catch (error) {
+          if (error instanceof AxiosError && error.response) {
+            toast({
+              title: "Error",
+              description: error.response.data.message,
+              status: "error",
+              duration: 2000,
+              position: "top"
+            });
+          }
         }
       }
     };
