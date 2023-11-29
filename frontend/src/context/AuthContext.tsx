@@ -1,4 +1,6 @@
+import { axiosClient } from "@/lib/axios";
 import { createContext, useState, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   children: ReactNode;
@@ -26,6 +28,25 @@ const AuthProvider = ({ children }: Props) => {
   );
 
   const [username, setUsername] = useState(initialValue.username);
+
+  const navigate = useNavigate();
+
+  axiosClient.interceptors.request.use((config) => {
+    config.headers["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
+    return config;
+  });
+
+  axiosClient.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    (error) => {
+      if (error.response.status === 401) {
+        localStorage.removeItem("token");
+        return navigate("/login");
+      }
+    }
+  );
 
   return (
     <AuthContext.Provider

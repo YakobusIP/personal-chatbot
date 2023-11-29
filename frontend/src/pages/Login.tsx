@@ -11,7 +11,7 @@ import {
   Text
 } from "@chakra-ui/react";
 import { axiosClient } from "@/lib/axios";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RootLayout from "@/components/RootLayout";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -26,7 +26,14 @@ interface FormValues {
 export default function Login() {
   const toast = useToast();
   const navigate = useNavigate();
-  const { setAuthenticated, setUsername } = useContext(AuthContext);
+  const { authenticated, setAuthenticated, setUsername } =
+    useContext(AuthContext);
+
+  useEffect(() => {
+    if (authenticated) {
+      navigate("/home");
+    }
+  }, [authenticated, navigate]);
 
   const {
     register,
@@ -44,16 +51,14 @@ export default function Login() {
       const response = await axiosClient.post("/login", data);
 
       toast({
-        title: response.data.message,
+        title: "Success",
+        description: response.data.message,
         status: "success",
         duration: 2000,
         position: "top"
       });
 
       localStorage.setItem("token", response.data.token);
-      axiosClient.defaults.headers.common = {
-        Authorization: `Bearer ${response.data.token}`
-      };
       navigate("/home");
       setAuthenticated(true);
       setUsername(response.data.username);
