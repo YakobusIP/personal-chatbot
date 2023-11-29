@@ -42,14 +42,6 @@ export default function Navbar() {
             duration: 2000,
             position: "top"
           });
-        } else {
-          toast({
-            title: "Error",
-            description: "Fatal error",
-            status: "error",
-            duration: 2000,
-            position: "top"
-          });
         }
       }
     }
@@ -80,7 +72,7 @@ export default function Navbar() {
           />
         )}
         <Flex
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
           _hover={{ cursor: "pointer" }}
           alignItems={"center"}
           columnGap={2}

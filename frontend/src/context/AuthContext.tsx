@@ -1,6 +1,6 @@
 import { axiosClient } from "@/lib/axios";
+import { useToast } from "@chakra-ui/react";
 import { createContext, useState, ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
 
 interface Props {
   children: ReactNode;
@@ -29,7 +29,7 @@ const AuthProvider = ({ children }: Props) => {
 
   const [username, setUsername] = useState(initialValue.username);
 
-  const navigate = useNavigate();
+  const toast = useToast();
 
   axiosClient.interceptors.request.use((config) => {
     config.headers["Authorization"] = `Bearer ${localStorage.getItem("token")}`;
@@ -43,7 +43,15 @@ const AuthProvider = ({ children }: Props) => {
     (error) => {
       if (error.response.status === 401) {
         localStorage.removeItem("token");
-        return navigate("/login");
+        setAuthenticated(false);
+
+        return toast({
+          title: "Error",
+          description: "Session expired. Please login again",
+          status: "error",
+          duration: 2000,
+          position: "top"
+        });
       }
     }
   );

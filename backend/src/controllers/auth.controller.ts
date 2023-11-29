@@ -38,7 +38,7 @@ export const login: RequestHandler = async (req, res, next) => {
     };
 
     const token = sign(payload, process.env.SECRET_KEY as string, {
-      expiresIn: "15m"
+      expiresIn: "1h"
     });
 
     res.status(StatusCode.SUCCESS).json({
