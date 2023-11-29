@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import RootLayout from "@/components/RootLayout";
 import RoomNumber from "@/components/RoomNumber";
 import Room from "@/types/room.type";
+import { AxiosError } from "axios";
 
 export default function Home() {
   const toast = useToast();
@@ -20,12 +21,23 @@ export default function Home() {
 
       setRoom(response.data.data);
     } catch (error) {
-      toast({
-        title: "Error",
-        status: "error",
-        duration: 2000,
-        position: "top"
-      });
+      if (error instanceof AxiosError && error.response) {
+        toast({
+          title: "Error",
+          description: error.response.data.message,
+          status: "error",
+          duration: 2000,
+          position: "top"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Fatal error",
+          status: "error",
+          duration: 2000,
+          position: "top"
+        });
+      }
     }
     setLoading(false);
   }, [toast]);
@@ -47,12 +59,23 @@ export default function Home() {
         position: "top"
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        status: "error",
-        duration: 2000,
-        position: "top"
-      });
+      if (error instanceof AxiosError && error.response) {
+        toast({
+          title: "Error",
+          description: error.response.data.message,
+          status: "error",
+          duration: 2000,
+          position: "top"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Fatal error",
+          status: "error",
+          duration: 2000,
+          position: "top"
+        });
+      }
     }
   };
 

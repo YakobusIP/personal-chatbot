@@ -5,6 +5,7 @@ import { sign } from "jsonwebtoken";
 import ClientSideError from "../custom-errors/client-side-error";
 import ServerSideError from "../custom-errors/server-side-error";
 import { StatusCode } from "../enum/status-code.enum";
+import { CustomError } from "../custom-errors/custom-error";
 
 interface LoginRequest {
   username: string;
@@ -42,6 +43,7 @@ export const login: RequestHandler = async (req, res, next) => {
 
     res.status(StatusCode.SUCCESS).json({
       message: "Login successful",
+      username: user.username,
       token
     });
   } catch (e) {
