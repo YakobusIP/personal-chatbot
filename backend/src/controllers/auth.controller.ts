@@ -4,6 +4,7 @@ import { compare } from "bcrypt";
 import { sign } from "jsonwebtoken";
 import ClientSideError from "../custom-errors/client-side-error";
 import ServerSideError from "../custom-errors/server-side-error";
+import { StatusCode } from "../enum/status-code.enum";
 
 interface LoginRequest {
   username: string;
@@ -21,11 +22,13 @@ export const login: RequestHandler = async (req, res, next) => {
     });
 
     if (!user) {
-      return next(new ClientSideError(404, "User not found"));
+      return next(new ClientSideError(StatusCode.NOT_FOUND, "User not found"));
     }
 
     if (!(await compare(password, user.password))) {
-      return next(new ClientSideError(401, "Incorrect password"));
+      return next(
+        new ClientSideError(StatusCode.UNAUTHORIZED, "Incorrect password")
+      );
     }
 
     const payload = {
@@ -37,11 +40,13 @@ export const login: RequestHandler = async (req, res, next) => {
       expiresIn: "15m"
     });
 
-    res.status(200).json({
+    res.status(StatusCode.SUCCESS).json({
       message: "Login successful",
       token
     });
   } catch (e) {
-    return next(new ServerSideError(500, "Failed to login"));
+    return next(
+      new ServerSideError(StatusCode.INTERNAL_SERVER_ERROR, "Failed to login")
+    );
   }
 };
