@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon -r dotenv/config src/index.ts"
+    "dev": "nodemon -r dotenv/config src/index.ts",
+    "build": "tsc -p ."
   },
   "dependencies": {
     "@types/cors": "^2.8.17",
