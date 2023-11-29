@@ -1,12 +1,15 @@
-import { Request, RequestHandler, Response } from "express";
-import { prisma } from "../prisma";
-import { ChatOpenAI } from "langchain/chat_models/openai";
-import { LLMChain } from "langchain/chains";
-import { PromptTemplate } from "langchain/prompts";
+import { RequestHandler } from "express";
+import { prisma } from "../lib/prisma";
+import ServerSideError from "../custom-errors/server-side-error";
 
 export const getChatRooms: RequestHandler = async (req, res) => {
+  const { userId } = req.body;
+
   try {
     const data = await prisma.chat.findMany({
+      where: {
+        userId
+      },
       select: { id: true, topic: true }
     });
 
@@ -19,23 +22,21 @@ export const getChatRooms: RequestHandler = async (req, res) => {
   }
 };
 
-export const createNewChat: RequestHandler = async (_, res) => {
+export const createNewChat: RequestHandler = async (req, res, next) => {
+  const { userId } = req.body;
+
   try {
-    const data = await prisma.chat.create({});
+    await prisma.chat.create({ data: { userId: "a" } });
 
     res.status(201).json({
-      data,
       message: "Chat successfully created"
     });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Failed to create chat"
-    });
+    return next(new ServerSideError(500, "Failed to create chat"));
   }
 };
 
-export const getChatHistory: RequestHandler = async (req, res) => {
+export const getChatHistory: RequestHandler = async (req, res, next) => {
   const id = req.params.id;
 
   try {
@@ -54,10 +55,7 @@ export const getChatHistory: RequestHandler = async (req, res) => {
 
     res.status(200).json({ data });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Failed to fetch chat history"
-    });
+    return next(new ServerSideError(500, "Failed to fetch chat history"));
   }
 };
 
