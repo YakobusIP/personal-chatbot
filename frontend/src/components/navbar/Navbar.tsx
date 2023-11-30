@@ -11,12 +11,14 @@ import {
 import { axiosClient } from "@/lib/axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { RxHamburgerMenu } from "react-icons/rx";
+import { FaEdit } from "react-icons/fa";
 import { useState, useEffect, useCallback, useContext } from "react";
 import NavbarDrawer from "@/components/navbar/Drawer";
 import Room from "@/types/room.type";
 import ColorSwitch from "./ColorSwitch";
 import { AxiosError } from "axios";
 import { ChatTopicContext } from "@/context/ChatTopicContext";
+import EditTopicModal from "@/components/navbar/EditTopicModal";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -26,7 +28,17 @@ export default function Navbar() {
   const { colorMode } = useColorMode();
   const { topic } = useContext(ChatTopicContext);
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isOpenDrawer,
+    onOpen: onOpenDrawer,
+    onClose: onCloseDrawer
+  } = useDisclosure();
+
+  const {
+    isOpen: isOpenModal,
+    onOpen: onOpenModal,
+    onClose: onCloseModal
+  } = useDisclosure();
 
   const [rooms, setRoom] = useState<Room[]>();
 
@@ -50,7 +62,7 @@ export default function Navbar() {
 
   useEffect(() => {
     fetchRooms();
-  }, [fetchRooms]);
+  }, [fetchRooms, topic]);
 
   return (
     <Flex
@@ -67,7 +79,7 @@ export default function Navbar() {
           as={RxHamburgerMenu}
           boxSize={6}
           _hover={{ cursor: "pointer" }}
-          onClick={onOpen}
+          onClick={onOpenDrawer}
         />
         <Flex
           onClick={() => navigate("/home")}
@@ -80,12 +92,27 @@ export default function Navbar() {
         </Flex>
       </Flex>
       {location.pathname.includes("/chat") && (
-        <Text mx={"auto"} fontWeight={700} flex={1} textAlign={"center"}>
-          {topic}
-        </Text>
+        <Flex
+          flex={1}
+          alignItems={"center"}
+          justifyContent={"center"}
+          columnGap={2}
+        >
+          <Text fontWeight={700}>{topic}</Text>
+          <Icon
+            as={FaEdit}
+            _hover={{ cursor: "pointer" }}
+            onClick={onOpenModal}
+          />
+          <EditTopicModal isOpen={isOpenModal} onClose={onCloseModal} />
+        </Flex>
       )}
       <ColorSwitch />
-      <NavbarDrawer rooms={rooms} isOpen={isOpen} onClose={onClose} />
+      <NavbarDrawer
+        rooms={rooms}
+        isOpen={isOpenDrawer}
+        onClose={onCloseDrawer}
+      />
     </Flex>
   );
 }

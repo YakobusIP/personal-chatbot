@@ -24,7 +24,11 @@ export const getChatRooms: RequestHandler = async (req, res, next) => {
 
 export const createNewChat: RequestHandler = async (req, res, next) => {
   try {
-    await prisma.chat.create({});
+    await prisma.chat.create({
+      data: {
+        topic: "New Chat"
+      }
+    });
 
     return res.status(StatusCode.CREATED).json({
       message: "Chat successfully created"
@@ -43,6 +47,15 @@ export const getChatHistory: RequestHandler = async (req, res, next) => {
   const id = req.params.id;
 
   try {
+    const topic = await prisma.chat.findFirst({
+      where: { id: id },
+      select: { topic: true }
+    });
+
+    if (!topic) {
+      return next(new ClientSideError(404, "Chat not found"));
+    }
+
     const data = await prisma.message.findMany({
       where: { chatId: id },
       select: {
@@ -56,7 +69,7 @@ export const getChatHistory: RequestHandler = async (req, res, next) => {
       }
     });
 
-    return res.status(StatusCode.SUCCESS).json({ data });
+    return res.status(StatusCode.SUCCESS).json({ data, topic: topic.topic });
   } catch (e) {
     return next(
       new ServerSideError(
@@ -98,6 +111,30 @@ export const addRecentGPTMessage: RequestHandler = async (req, res, next) => {
       new ServerSideError(
         StatusCode.INTERNAL_SERVER_ERROR,
         "Failed to save recent chat"
+      )
+    );
+  }
+};
+
+export const editChatTopic: RequestHandler = async (req, res, next) => {
+  try {
+    await prisma.chat.update({
+      where: {
+        id: req.body.id
+      },
+      data: {
+        topic: req.body.topic
+      }
+    });
+
+    return res
+      .status(StatusCode.SUCCESS)
+      .json({ topic: req.body.topic, message: "Chat topic updated" });
+  } catch (e) {
+    return next(
+      new ServerSideError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        "Failed to update chat topic"
       )
     );
   }
