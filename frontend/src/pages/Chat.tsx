@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react";
 import { axiosClient } from "@/lib/axios";
 import { useParams } from "react-router-dom";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import io from "socket.io-client";
 import RootLayout from "@/components/RootLayout";
@@ -18,6 +18,7 @@ import Message from "@/types/message.type";
 import { ChatRole } from "@/enum/chatrole.enum";
 import { IoMdArrowDown } from "react-icons/io";
 import { AxiosError } from "axios";
+import { ChatTopicContext } from "@/context/ChatTopicContext";
 
 const socket = io(import.meta.env.VITE_BASE_WS_URL);
 
@@ -25,6 +26,7 @@ export default function Chat() {
   const toast = useToast();
   const { id } = useParams();
   const { colorMode } = useColorMode();
+  const { setTopic } = useContext(ChatTopicContext);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,6 +42,8 @@ export default function Chat() {
         const response = await axiosClient.get(`/chat/${chatId}`);
 
         const messageArray = response.data.data as Message[];
+
+        setTopic(response.data.topic);
 
         messageArray.map((message) => {
           setMessages((prevMessage) => [
@@ -64,7 +68,7 @@ export default function Chat() {
         }
       }
     },
-    [toast]
+    [toast, setTopic]
   );
 
   useEffect(() => {

@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 interface Props {
   id: string;
+  topic: string | null;
 }
 
-export default function RoomNumber({ id }: Props) {
+export default function RoomNumber({ id, topic }: Props) {
   const navigate = useNavigate();
   const { colorMode } = useColorMode();
 
@@ -21,8 +22,9 @@ export default function RoomNumber({ id }: Props) {
       bgColor={colorMode === "dark" ? "navbar.dark" : "navbar.light"}
       p={4}
       rounded={"lg"}
+      w={"full"}
     >
-      <Text noOfLines={1}>{id}</Text>
+      <Text noOfLines={1}>{topic}</Text>
     </Flex>
   );
 }

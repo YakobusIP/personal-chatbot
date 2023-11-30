@@ -3,23 +3,28 @@ import {
   Heading,
   Icon,
   Image,
+  Text,
   useColorMode,
   useDisclosure,
   useToast
 } from "@chakra-ui/react";
 import { axiosClient } from "@/lib/axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { RxHamburgerMenu } from "react-icons/rx";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useContext } from "react";
 import NavbarDrawer from "@/components/navbar/Drawer";
 import Room from "@/types/room.type";
 import ColorSwitch from "./ColorSwitch";
 import { AxiosError } from "axios";
+import { ChatTopicContext } from "@/context/ChatTopicContext";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const toast = useToast();
   const { colorMode } = useColorMode();
+  const { topic } = useContext(ChatTopicContext);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -55,10 +60,9 @@ export default function Navbar() {
       p={4}
       bgColor={colorMode === "dark" ? "navbar.dark" : "navbar.light"}
       alignItems={"center"}
-      justifyContent={"space-between"}
       zIndex={2}
     >
-      <Flex alignItems={"center"} columnGap={4}>
+      <Flex alignItems={"center"} columnGap={4} flex={1}>
         <Icon
           as={RxHamburgerMenu}
           boxSize={6}
@@ -75,6 +79,11 @@ export default function Navbar() {
           <Heading fontSize={"xl"}>Personal Chatbot</Heading>
         </Flex>
       </Flex>
+      {location.pathname.includes("/chat") && (
+        <Text mx={"auto"} fontWeight={700} flex={1} textAlign={"center"}>
+          {topic}
+        </Text>
+      )}
       <ColorSwitch />
       <NavbarDrawer rooms={rooms} isOpen={isOpen} onClose={onClose} />
     </Flex>

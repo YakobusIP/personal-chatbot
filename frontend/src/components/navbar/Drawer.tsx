@@ -13,7 +13,7 @@ import {
   useColorMode
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
-import RoomNumber from "@/components/RoomNumber";
+import RoomNumber from "@/components/navbar/RoomNumber";
 
 interface Props {
   rooms: Room[] | undefined;
@@ -49,7 +49,7 @@ export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
             <Heading fontSize={"2xl"}>List of chats</Heading>
             {rooms &&
               rooms.map((room) => {
-                return <RoomNumber id={room.id} />;
+                return <RoomNumber id={room.id} topic={room.topic} />;
               })}
           </VStack>
         </DrawerBody>
