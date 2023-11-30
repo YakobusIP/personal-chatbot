@@ -10,21 +10,10 @@ import {
   Heading,
   DrawerBody,
   VStack,
-  useColorMode,
-  DrawerFooter,
-  Menu,
-  MenuButton,
-  Avatar,
-  Text,
-  MenuList,
-  MenuItem
+  useColorMode
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import RoomNumber from "@/components/RoomNumber";
-import { useContext } from "react";
-import { AuthContext } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { axiosClient } from "@/lib/axios";
 
 interface Props {
   rooms: Room[] | undefined;
@@ -34,15 +23,6 @@ interface Props {
 
 export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
   const { colorMode } = useColorMode();
-  const { setAuthenticated, username } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  const logout = () => {
-    navigate("/login");
-    localStorage.removeItem("token");
-    setAuthenticated(false);
-    delete axiosClient.defaults.headers.common["Authorization"];
-  };
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose} placement="left">
@@ -73,29 +53,6 @@ export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
               })}
           </VStack>
         </DrawerBody>
-        <DrawerFooter w={"full"}>
-          <Menu>
-            <MenuButton
-              w={"full"}
-              _hover={{
-                bgColor:
-                  colorMode === "dark"
-                    ? "navbar.dark_hover"
-                    : "navbar.light_hover"
-              }}
-              p={2}
-              rounded={"lg"}
-            >
-              <Flex columnGap={4} alignItems={"center"}>
-                <Avatar name={username} size={"md"} />
-                <Text fontWeight={"bold"}>{username}</Text>
-              </Flex>
-            </MenuButton>
-            <MenuList>
-              <MenuItem onClick={logout}>Logout</MenuItem>
-            </MenuList>
-          </Menu>
-        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

@@ -2,19 +2,16 @@ import { RequestHandler } from "express";
 import { prisma } from "../lib/prisma";
 import ServerSideError from "../custom-errors/server-side-error";
 import { StatusCode } from "../enum/status-code.enum";
+import Message from "../types/message.type";
+import ClientSideError from "../custom-errors/client-side-error";
 
 export const getChatRooms: RequestHandler = async (req, res, next) => {
-  const { userId } = req.body;
-
   try {
     const data = await prisma.chat.findMany({
-      where: {
-        userId
-      },
       select: { id: true, topic: true }
     });
 
-    res.status(StatusCode.SUCCESS).json({ data });
+    return res.status(StatusCode.SUCCESS).json({ data });
   } catch (e) {
     return next(
       new ServerSideError(
@@ -26,12 +23,10 @@ export const getChatRooms: RequestHandler = async (req, res, next) => {
 };
 
 export const createNewChat: RequestHandler = async (req, res, next) => {
-  const { userId } = req.body;
-
   try {
-    await prisma.chat.create({ data: { userId } });
+    await prisma.chat.create({});
 
-    res.status(StatusCode.CREATED).json({
+    return res.status(StatusCode.CREATED).json({
       message: "Chat successfully created"
     });
   } catch (e) {
@@ -61,7 +56,7 @@ export const getChatHistory: RequestHandler = async (req, res, next) => {
       }
     });
 
-    res.status(StatusCode.SUCCESS).json({ data });
+    return res.status(StatusCode.SUCCESS).json({ data });
   } catch (e) {
     return next(
       new ServerSideError(
@@ -72,17 +67,21 @@ export const getChatHistory: RequestHandler = async (req, res, next) => {
   }
 };
 
-interface Message {
-  chatId: string;
-  id: string;
-  author: string;
-  content: string;
-}
-
 export const addRecentGPTMessage: RequestHandler = async (req, res, next) => {
   const data: Message = req.body.message;
 
   try {
+    // Revalidate if the chat content has been saved before
+    const chat = await prisma.message.findFirst({
+      where: {
+        content: data.content
+      }
+    });
+
+    if (chat) {
+      return next(new ClientSideError(400, "Content already exists"));
+    }
+
     await prisma.message.create({
       data: {
         chatId: data.chatId,
@@ -91,7 +90,9 @@ export const addRecentGPTMessage: RequestHandler = async (req, res, next) => {
       }
     });
 
-    res.status(StatusCode.CREATED).json({ message: "Recent chat saved" });
+    return res
+      .status(StatusCode.CREATED)
+      .json({ message: "Recent chat saved" });
   } catch (e) {
     return next(
       new ServerSideError(

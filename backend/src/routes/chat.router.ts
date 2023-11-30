@@ -5,13 +5,12 @@ import {
   getChatHistory,
   addRecentGPTMessage
 } from "../controllers/chat.controller";
-import { authMiddleware } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.get("/room-list", authMiddleware, getChatRooms);
-router.get("/chat/:id", authMiddleware, getChatHistory);
-router.post("/new-chat", authMiddleware, createNewChat);
-router.post("/recent-message", authMiddleware, addRecentGPTMessage);
+router.get("/room-list", getChatRooms);
+router.get("/chat/:id", getChatHistory);
+router.post("/new-chat", createNewChat);
+router.post("/recent-message", addRecentGPTMessage);
 
 export default router;
