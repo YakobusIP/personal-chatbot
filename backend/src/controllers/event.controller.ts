@@ -10,6 +10,10 @@ import {
   SystemMessagePromptTemplate
 } from "langchain/prompts";
 import { GPTModel } from "../enum/gpt-model.enum";
+import { prisma } from "../lib/prisma";
+import { ChatRole } from "../enum/chat-role.enum";
+
+let response = "";
 
 export const chatEventHandler: RequestHandler = async (req, res, next) => {
   const data: Message = req.body.data;
@@ -32,9 +36,18 @@ export const chatEventHandler: RequestHandler = async (req, res, next) => {
       {
         // Send data each token received from the LLM
         handleLLMNewToken(token) {
+          response = response.concat(token);
           res.write(`data: ${JSON.stringify({ data: token })}\n\n`);
         },
-        handleLLMEnd() {
+        async handleLLMEnd() {
+          await prisma.message.create({
+            data: {
+              author: ChatRole.CHATBOT,
+              content: response,
+              chatId: data.chatId
+            }
+          });
+          response = "";
           res.end();
         }
       }
