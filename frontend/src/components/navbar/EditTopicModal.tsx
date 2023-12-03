@@ -15,7 +15,7 @@ import {
   useToast
 } from "@chakra-ui/react";
 import { AxiosError } from "axios";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useLocation } from "react-router-dom";
 
 interface Props {
@@ -31,7 +31,7 @@ export default function EditTopicModal({ isOpen, onClose }: Props) {
 
   const [newTopic, setNewTopic] = useState(topic);
 
-  const editTopic = useCallback(async () => {
+  const editTopic = async () => {
     try {
       const response = await axiosClient.put("/update-topic", {
         id,
@@ -58,23 +58,7 @@ export default function EditTopicModal({ isOpen, onClose }: Props) {
         });
       }
     }
-  }, [id, newTopic, onClose, toast, setTopic]);
-
-  useEffect(() => {
-    const keyDownHandler = (event: KeyboardEvent) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-
-        editTopic();
-      }
-    };
-
-    document.addEventListener("keydown", keyDownHandler);
-
-    return () => {
-      document.removeEventListener("keydown", keyDownHandler);
-    };
-  }, [editTopic]);
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
@@ -86,7 +70,6 @@ export default function EditTopicModal({ isOpen, onClose }: Props) {
           <FormControl>
             <FormLabel>Topic name</FormLabel>
             <Input
-              autoFocus
               placeholder="Topic name"
               value={newTopic}
               onChange={(e) => setNewTopic(e.target.value)}

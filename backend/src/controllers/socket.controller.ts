@@ -2,6 +2,7 @@ import { Socket } from "socket.io";
 import Message from "../types/message.type";
 import { ChatRole } from "../enum/chat-role.enum";
 import { prisma } from "../lib/prisma";
+import { memory } from "../lib/memory";
 import { v4 as uuidv4 } from "uuid";
 import { OpenAI } from "langchain/llms/openai";
 import { ChatOpenAI } from "langchain/chat_models/openai";
@@ -10,25 +11,9 @@ import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
   MessagesPlaceholder,
-  PromptTemplate,
   SystemMessagePromptTemplate
 } from "langchain/prompts";
-import { ConversationSummaryBufferMemory } from "langchain/memory";
-
-// const MAIN_CHAIN_MODEL = 'gpt-4-1106-preview'
-const MAIN_CHAIN_MODEL = "gpt-3.5-turbo";
-const MEMORY_MODEL = "gpt-3.5-turbo";
-
-const summaryModel = new OpenAI({
-  modelName: MEMORY_MODEL,
-  temperature: 0
-});
-
-const memory = new ConversationSummaryBufferMemory({
-  llm: summaryModel,
-  maxTokenLimit: 10,
-  returnMessages: true
-});
+import { GPTModel } from "../enum/gpt-model.enum";
 
 export const gptSocket = (socket: Socket) => {
   console.log(`User connected ${socket.id}`);
@@ -45,7 +30,7 @@ export const gptSocket = (socket: Socket) => {
 
     const model = new ChatOpenAI({
       temperature: 0.5,
-      modelName: MAIN_CHAIN_MODEL,
+      modelName: GPTModel.MAIN_CHAIN,
       streaming: true,
       callbacks: [
         {
@@ -71,10 +56,6 @@ export const gptSocket = (socket: Socket) => {
       new MessagesPlaceholder("history"),
       HumanMessagePromptTemplate.fromTemplate("{question}")
     ]);
-
-    // const prompt_template = `You are a helpful chatbot that performs like ChatGPT.
-    //     Follow up input: {question}
-    //     AI:`;
 
     const chain = new ConversationChain({
       llm: model,

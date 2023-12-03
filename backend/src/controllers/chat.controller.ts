@@ -4,6 +4,7 @@ import ServerSideError from "../custom-errors/server-side-error";
 import { StatusCode } from "../enum/status-code.enum";
 import Message from "../types/message.type";
 import ClientSideError from "../custom-errors/client-side-error";
+import { memory } from "../lib/memory";
 
 export const getChatRooms: RequestHandler = async (req, res, next) => {
   try {
@@ -24,13 +25,14 @@ export const getChatRooms: RequestHandler = async (req, res, next) => {
 
 export const createNewChat: RequestHandler = async (req, res, next) => {
   try {
-    await prisma.chat.create({
+    const data = await prisma.chat.create({
       data: {
         topic: "New Chat"
       }
     });
 
     return res.status(StatusCode.CREATED).json({
+      data,
       message: "Chat successfully created"
     });
   } catch (e) {
@@ -68,6 +70,15 @@ export const getChatHistory: RequestHandler = async (req, res, next) => {
         createdAt: "asc"
       }
     });
+
+    const context = data.slice(-10);
+
+    for (let i = 0; i < context.length; i += 2) {
+      await memory.saveContext(
+        { input: context[i].content },
+        { output: context[i + 1].content }
+      );
+    }
 
     return res.status(StatusCode.SUCCESS).json({ data, topic: topic.topic });
   } catch (e) {

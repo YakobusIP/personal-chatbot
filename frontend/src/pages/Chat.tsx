@@ -7,7 +7,7 @@ import {
   useToast
 } from "@chakra-ui/react";
 import { axiosClient } from "@/lib/axios";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import io from "socket.io-client";
@@ -24,6 +24,8 @@ const socket = io(import.meta.env.VITE_BASE_WS_URL);
 
 export default function Chat() {
   const toast = useToast();
+  const location = useLocation();
+
   const { id } = useParams();
   const { colorMode } = useColorMode();
   const { setTopic } = useContext(ChatTopicContext);
@@ -72,8 +74,9 @@ export default function Chat() {
   );
 
   useEffect(() => {
+    setMessages([]);
     fetchChatHistory(id as string);
-  }, [fetchChatHistory, id]);
+  }, [fetchChatHistory, id, location]);
 
   useEffect(() => {
     socket.on("receive_message", (data: Message) => {
