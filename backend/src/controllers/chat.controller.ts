@@ -150,3 +150,26 @@ export const editChatTopic: RequestHandler = async (req, res, next) => {
     );
   }
 };
+
+export const addUserMessage: RequestHandler = async (req, res, next) => {
+  const data: Message = req.body.data;
+
+  try {
+    await prisma.message.create({
+      data: {
+        author: data.author,
+        content: data.content,
+        chatId: data.chatId
+      }
+    });
+
+    return next();
+  } catch (e) {
+    return next(
+      new ServerSideError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        "Failed to save user message"
+      )
+    );
+  }
+};
