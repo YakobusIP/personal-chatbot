@@ -14,6 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import RoomNumber from "@/components/navbar/RoomNumber";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   rooms: Room[] | undefined;
@@ -23,6 +24,7 @@ interface Props {
 
 export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
   const { colorMode } = useColorMode();
+  const navigate = useNavigate();
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose} placement="left">
@@ -38,7 +40,11 @@ export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
               _hover={{ cursor: "pointer" }}
               onClick={onClose}
             />
-            <Flex alignItems={"center"} columnGap={2}>
+            <Flex
+              alignItems={"center"}
+              columnGap={2}
+              onClick={() => navigate("/home")}
+            >
               <Image src="/gpt-black-logo.jpg" boxSize={8} />
               <Heading fontSize={"xl"}>Personal Chatbot</Heading>
             </Flex>

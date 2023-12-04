@@ -79,7 +79,7 @@ export default function ChatInput({ sendInput }: Props) {
       p={8}
       bgColor={colorMode === "dark" ? "background.dark" : "background.light"}
     >
-      <InputGroup w={"50%"}>
+      <InputGroup w={{ base: "full", lg: "50%" }}>
         <Textarea
           ref={textAreaRef}
           resize={"none"}

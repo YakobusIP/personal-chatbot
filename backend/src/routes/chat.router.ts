@@ -10,8 +10,8 @@ import { chatEventHandler } from "../controllers/event.controller";
 const router = Router();
 
 router.get("/room-list", getChatRooms);
-router.get("/chat/:id", getChatHistory);
-router.post("/new-chat", createNewChat);
+router.get("/:id", getChatHistory);
+router.post("/", createNewChat);
 router.put("/update-topic", editChatTopic);
 router.get("/answer-question", chatEventHandler);
 

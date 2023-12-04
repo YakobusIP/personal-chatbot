@@ -1,4 +1,11 @@
-import { Button, Flex, Icon, useColorMode, useToast } from "@chakra-ui/react";
+import {
+  Button,
+  Flex,
+  Icon,
+  useColorMode,
+  useToast,
+  useBreakpointValue
+} from "@chakra-ui/react";
 import { axiosClient } from "@/lib/axios";
 import { useLocation, useParams } from "react-router-dom";
 import { useCallback, useContext, useEffect, useState } from "react";
@@ -8,7 +15,7 @@ import ChatMessage from "@/components/chat/ChatMessage";
 import Message from "@/types/message.type";
 import { IoMdArrowDown } from "react-icons/io";
 import { AxiosError } from "axios";
-import { ChatTopicContext } from "@/context/ChatTopicContext";
+import { ChatTopicContext } from "@/context/ContextProvider";
 import Chunk from "@/types/chunk.type";
 
 export default function Chat() {
@@ -17,6 +24,7 @@ export default function Chat() {
 
   const { id } = useParams();
   const { colorMode } = useColorMode();
+  const isLg = useBreakpointValue({ base: false, lg: true });
   const { setTopic } = useContext(ChatTopicContext);
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -84,7 +92,7 @@ export default function Chat() {
       ]);
 
       const events = new EventSource(
-        `${import.meta.env.VITE_BASE_AXIOS_URL}/answer-question?chatId=${
+        `${import.meta.env.VITE_BASE_AXIOS_URL}/chat/answer-question?chatId=${
           data.chatId
         }&content=${data.content}`
       );
@@ -179,19 +187,21 @@ export default function Chat() {
         })}
       </Flex>
       <ChatInput sendInput={(input) => sendMessage(input)} />
-      <Button
-        position={"fixed"}
-        zIndex={2}
-        bottom={8}
-        right={8}
-        bgColor={colorMode === "dark" ? "navbar.dark" : "navbar.light"}
-        height={"48px"}
-        width={"48px"}
-        borderRadius={"50%"}
-        onClick={scrollToBottom}
-      >
-        <Icon as={IoMdArrowDown} boxSize={8} />
-      </Button>
+      {isLg && (
+        <Button
+          position={"fixed"}
+          zIndex={2}
+          bottom={8}
+          right={8}
+          bgColor={colorMode === "dark" ? "navbar.dark" : "navbar.light"}
+          height={"48px"}
+          width={"48px"}
+          borderRadius={"50%"}
+          onClick={scrollToBottom}
+        >
+          <Icon as={IoMdArrowDown} boxSize={8} />
+        </Button>
+      )}
     </RootLayout>
   );
 }

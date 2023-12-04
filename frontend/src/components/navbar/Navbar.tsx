@@ -6,7 +6,8 @@ import {
   Text,
   useColorMode,
   useDisclosure,
-  useToast
+  useToast,
+  useBreakpointValue
 } from "@chakra-ui/react";
 import { axiosClient } from "@/lib/axios";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -17,7 +18,7 @@ import NavbarDrawer from "@/components/navbar/Drawer";
 import Room from "@/types/room.type";
 import ColorSwitch from "./ColorSwitch";
 import { AxiosError } from "axios";
-import { ChatTopicContext } from "@/context/ChatTopicContext";
+import { ChatTopicContext } from "@/context/ContextProvider";
 import EditTopicModal from "@/components/navbar/EditTopicModal";
 
 export default function Navbar() {
@@ -26,6 +27,7 @@ export default function Navbar() {
 
   const toast = useToast();
   const { colorMode } = useColorMode();
+  const isLg = useBreakpointValue({ base: false, lg: true });
   const { topic } = useContext(ChatTopicContext);
 
   const {
@@ -44,7 +46,7 @@ export default function Navbar() {
 
   const fetchRooms = useCallback(async () => {
     try {
-      const response = await axiosClient.get("/room-list");
+      const response = await axiosClient.get("/chat/room-list");
 
       setRoom(response.data.data);
     } catch (error) {
@@ -81,15 +83,17 @@ export default function Navbar() {
           _hover={{ cursor: "pointer" }}
           onClick={onOpenDrawer}
         />
-        <Flex
-          onClick={() => navigate("/home")}
-          _hover={{ cursor: "pointer" }}
-          alignItems={"center"}
-          columnGap={2}
-        >
-          <Image src="/gpt-black-logo.jpg" boxSize={8} />
-          <Heading fontSize={"xl"}>Personal Chatbot</Heading>
-        </Flex>
+        {isLg && (
+          <Flex
+            onClick={() => navigate("/home")}
+            _hover={{ cursor: "pointer" }}
+            alignItems={"center"}
+            columnGap={2}
+          >
+            <Image src="/gpt-black-logo.jpg" boxSize={8} />
+            <Heading fontSize={"xl"}>Personal Chatbot</Heading>
+          </Flex>
+        )}
       </Flex>
       {location.pathname.includes("/chat") && (
         <Flex

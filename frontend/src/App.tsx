@@ -1,16 +1,16 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "@/pages/Home";
 import Chat from "@/pages/Chat";
-import { ChatTopicProvider } from "./context/ChatTopicContext";
+import { ContextProvider } from "./context/ContextProvider";
 
 function App() {
   return (
-    <ChatTopicProvider>
+    <ContextProvider>
       <Routes>
         <Route path="/home" element={<Home />} />
         <Route path="/chat/:id" element={<Chat />} />
       </Routes>
-    </ChatTopicProvider>
+    </ContextProvider>
   );
 }
 

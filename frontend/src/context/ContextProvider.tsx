@@ -16,7 +16,7 @@ const initialValue: IChatTopicContext = {
 
 const ChatTopicContext = createContext<IChatTopicContext>(initialValue);
 
-const ChatTopicProvider = ({ children }: Props) => {
+const ContextProvider = ({ children }: Props) => {
   const [topic, setTopic] = useState(initialValue.topic);
 
   return (
@@ -26,4 +26,4 @@ const ChatTopicProvider = ({ children }: Props) => {
   );
 };
 
-export { ChatTopicContext, ChatTopicProvider };
+export { ChatTopicContext, ContextProvider };

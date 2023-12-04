@@ -1,4 +1,4 @@
-import { ChatTopicContext } from "@/context/ChatTopicContext";
+import { ChatTopicContext } from "@/context/ContextProvider";
 import { axiosClient } from "@/lib/axios";
 import {
   Button,
@@ -33,7 +33,7 @@ export default function EditTopicModal({ isOpen, onClose }: Props) {
 
   const editTopic = async () => {
     try {
-      const response = await axiosClient.put("/update-topic", {
+      const response = await axiosClient.put("/chat/update-topic", {
         id,
         topic: newTopic
       });
