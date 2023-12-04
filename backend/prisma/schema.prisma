@@ -10,6 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  CHATBOT
+}
+
 // model User {
 //   id       String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
 //   email    String @unique
@@ -32,14 +37,14 @@ model Chat {
 
 model Message {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  author    String
+  author    Role
   content   String
   createdAt DateTime @default(now())
 
   chat   Chat   @relation(fields: [chatId], references: [id])
   chatId String @db.Uuid
 
-  questionId String   @unique @db.Uuid
-  question   Message  @relation("QuestionAnswer", fields: [questionId], references: [id])
+  questionId String?  @unique @db.Uuid
+  question   Message? @relation("QuestionAnswer", fields: [questionId], references: [id])
   answer     Message? @relation("QuestionAnswer")
 }

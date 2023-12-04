@@ -3,4 +3,5 @@ export default interface Message {
   id: string;
   author: string;
   content: string;
+  questionId: string | null;
 }

@@ -16,7 +16,7 @@ interface Props {
 export default function ChatInput({ sendInput }: Props) {
   const { colorMode } = useColorMode();
   const [input, setInput] = useState("");
-  const [rows, setRows] = useState(1);
+  const [overflow, setOverflow] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const pushInput = useCallback(
@@ -30,8 +30,6 @@ export default function ChatInput({ sendInput }: Props) {
           left: 0,
           behavior: "smooth"
         });
-
-        setRows(1);
       }
     },
     [sendInput]
@@ -51,24 +49,26 @@ export default function ChatInput({ sendInput }: Props) {
     return () => {
       document.removeEventListener("keydown", keyDownHandler);
     };
-  }, [input, pushInput, setRows, rows]);
+  }, [input, pushInput]);
 
-  const onTextValueChange = () => {
-    if (textAreaRef.current) {
-      const text = textAreaRef.current.value;
-      const lineLength = 90;
+  useEffect(() => {
+    if (textAreaRef && textAreaRef.current) {
+      textAreaRef.current.style.height = "0px";
+      let scrollHeight = textAreaRef.current.scrollHeight;
 
-      let rows = Math.ceil(text.length / lineLength);
-
-      if (rows === 0) {
-        rows = 1;
-      } else if (rows > 5) {
-        rows = 5;
+      if (scrollHeight > 180) {
+        setOverflow(true);
+      } else {
+        setOverflow(false);
       }
 
-      setRows(rows);
+      if (scrollHeight > 180) {
+        scrollHeight = 180;
+      }
+
+      textAreaRef.current.style.height = scrollHeight + "px";
     }
-  };
+  }, [textAreaRef, input, overflow]);
 
   return (
     <Flex
@@ -84,12 +84,14 @@ export default function ChatInput({ sendInput }: Props) {
           ref={textAreaRef}
           resize={"none"}
           placeholder="Message personal chatbot..."
-          rows={rows}
+          rows={1}
           autoFocus
+          minH={"unset"}
+          overflowY={overflow ? "auto" : "hidden"}
           value={input}
+          lineHeight={"24px"}
           onChange={(e) => {
             setInput(e.target.value);
-            onTextValueChange();
           }}
         />
         <InputRightElement _hover={{ cursor: "pointer" }} px={8}>

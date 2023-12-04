@@ -11,7 +11,6 @@ import {
 } from "langchain/prompts";
 import { GPTModel } from "../enum/gpt-model.enum";
 import { prisma } from "../lib/prisma";
-import { ChatRole } from "../enum/chat-role.enum";
 import { eventEmitter } from "../lib/event-emitter";
 
 let response = "";
@@ -20,13 +19,15 @@ export const chatEventHandler: RequestHandler = async (req, res, next) => {
   const { chatId, content } = req.query;
 
   // Save the message
-  await prisma.message.create({
+  const data = await prisma.message.create({
     data: {
       chatId: chatId as string,
-      author: ChatRole.USER,
+      author: "USER",
       content: content as string
     }
   });
+
+  console.log(data, "data");
 
   // Set headers to stay open for SSE
   const headers = {
@@ -47,15 +48,26 @@ export const chatEventHandler: RequestHandler = async (req, res, next) => {
         // Send data each token received from the LLM
         handleLLMNewToken(token) {
           response = response.concat(token);
-          res.write(`data: ${JSON.stringify({ data: token })}\n\n`);
+          res.write(
+            `data: ${JSON.stringify({
+              data: token,
+              questionId: data.id
+            })}\n\n`
+          );
         },
         async handleLLMEnd() {
-          res.write(`data: ${JSON.stringify({ data: "[DONE]" })}\n\n`);
+          res.write(
+            `data: ${JSON.stringify({
+              data: "[DONE]",
+              questionId: data.id
+            })}\n\n`
+          );
           await prisma.message.create({
             data: {
-              author: ChatRole.CHATBOT,
+              author: "CHATBOT",
               content: response,
-              chatId: chatId as string
+              chatId: chatId as string,
+              questionId: data.id
             }
           });
           response = "";

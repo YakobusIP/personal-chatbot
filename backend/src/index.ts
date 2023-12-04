@@ -19,7 +19,7 @@ const io = new Server(server, {
   }
 });
 
-io.on("connection", gptSocket);
+// io.on("connection", gptSocket);
 
 app.use(json());
 app.use(cors({ origin: "http://localhost:5173" }));

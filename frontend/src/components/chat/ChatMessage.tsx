@@ -1,4 +1,3 @@
-import { ChatRole } from "@/enum/chatrole.enum";
 import { Avatar, Flex, Heading, Text, useColorMode } from "@chakra-ui/react";
 import React from "react";
 import Markdown from "react-markdown";
@@ -43,18 +42,20 @@ export default function ChatMessage({ author, content }: Props) {
     >
       <Flex alignItems={"center"} columnGap={4}>
         <Avatar
-          name={author}
+          name={author === "USER" ? "Me" : "ChatGPT"}
           size={"sm"}
-          src={author === ChatRole.CHATBOT ? "/gpt-black-logo.jpg" : undefined}
+          src={author === "CHATBOT" ? "/gpt-black-logo.jpg" : undefined}
         />
-        <Heading fontSize={20}>{author}</Heading>
+        <Heading fontSize={20}>{author === "USER" ? "Me" : "ChatGPT"}</Heading>
       </Flex>
-      <Text whiteSpace={"pre-wrap"}>
-        {/* @ts-expect-error Unknown props type on react markdown */}
+      {author === "CHATBOT" ? (
+        /* @ts-expect-error Unknown props type on react markdown */
         <Markdown unwrapDisallowed={true} components={{ pre: components }}>
           {cleanOL}
         </Markdown>
-      </Text>
+      ) : (
+        <Text whiteSpace={"pre-wrap"}>{content}</Text>
+      )}
     </Flex>
   );
 }
