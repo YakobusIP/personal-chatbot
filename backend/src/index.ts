@@ -6,6 +6,7 @@ import cors from "cors";
 import { Server } from "socket.io";
 import { gptSocket } from "./controllers/socket.controller";
 import { errorMiddleware } from "./middleware/error.middleware";
+import { chatEventHandler } from "./controllers/event.controller";
 
 const app = express();
 

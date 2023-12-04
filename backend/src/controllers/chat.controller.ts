@@ -5,6 +5,8 @@ import { StatusCode } from "../enum/status-code.enum";
 import Message from "../types/message.type";
 import ClientSideError from "../custom-errors/client-side-error";
 import { memory } from "../lib/memory";
+import axios from "axios";
+import { eventEmitter } from "../lib/event-emitter";
 
 export const getChatRooms: RequestHandler = async (req, res, next) => {
   try {
@@ -71,14 +73,14 @@ export const getChatHistory: RequestHandler = async (req, res, next) => {
       }
     });
 
-    const context = data.slice(-10);
+    // const context = data.slice(-10);
 
-    for (let i = 0; i < context.length; i += 2) {
-      await memory.saveContext(
-        { input: context[i].content },
-        { output: context[i + 1].content }
-      );
-    }
+    // for (let i = 0; i < context.length; i += 2) {
+    //   await memory.saveContext(
+    //     { input: context[i].content },
+    //     { output: context[i + 1].content }
+    //   );
+    // }
 
     return res.status(StatusCode.SUCCESS).json({ data, topic: topic.topic });
   } catch (e) {
@@ -163,7 +165,7 @@ export const addUserMessage: RequestHandler = async (req, res, next) => {
       }
     });
 
-    return next();
+    return res.status(StatusCode.ACCEPTED).json({ message: "Question saved" });
   } catch (e) {
     return next(
       new ServerSideError(

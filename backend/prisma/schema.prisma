@@ -38,4 +38,8 @@ model Message {
 
   chat   Chat   @relation(fields: [chatId], references: [id])
   chatId String @db.Uuid
+
+  questionId String   @unique @db.Uuid
+  question   Message  @relation("QuestionAnswer", fields: [questionId], references: [id])
+  answer     Message? @relation("QuestionAnswer")
 }

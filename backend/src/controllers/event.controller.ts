@@ -12,11 +12,21 @@ import {
 import { GPTModel } from "../enum/gpt-model.enum";
 import { prisma } from "../lib/prisma";
 import { ChatRole } from "../enum/chat-role.enum";
+import { eventEmitter } from "../lib/event-emitter";
 
 let response = "";
 
 export const chatEventHandler: RequestHandler = async (req, res, next) => {
-  const data: Message = req.body.data;
+  const { chatId, content } = req.query;
+
+  // Save the message
+  await prisma.message.create({
+    data: {
+      chatId: chatId as string,
+      author: ChatRole.USER,
+      content: content as string
+    }
+  });
 
   // Set headers to stay open for SSE
   const headers = {
@@ -40,11 +50,12 @@ export const chatEventHandler: RequestHandler = async (req, res, next) => {
           res.write(`data: ${JSON.stringify({ data: token })}\n\n`);
         },
         async handleLLMEnd() {
+          res.write(`data: ${JSON.stringify({ data: "[DONE]" })}\n\n`);
           await prisma.message.create({
             data: {
               author: ChatRole.CHATBOT,
               content: response,
-              chatId: data.chatId
+              chatId: chatId as string
             }
           });
           response = "";
@@ -73,7 +84,7 @@ export const chatEventHandler: RequestHandler = async (req, res, next) => {
   });
 
   await chain.predict({
-    question: data.content
+    question: content as string
   });
 
   req.on("close", () => {
