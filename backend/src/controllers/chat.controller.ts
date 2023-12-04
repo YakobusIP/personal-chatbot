@@ -2,11 +2,7 @@ import { RequestHandler } from "express";
 import { prisma } from "../lib/prisma";
 import ServerSideError from "../custom-errors/server-side-error";
 import { StatusCode } from "../enum/status-code.enum";
-import Message from "../types/message.type";
 import ClientSideError from "../custom-errors/client-side-error";
-import { memory } from "../lib/memory";
-import axios from "axios";
-import { eventEmitter } from "../lib/event-emitter";
 
 export const getChatRooms: RequestHandler = async (req, res, next) => {
   try {
@@ -112,6 +108,40 @@ export const editChatTopic: RequestHandler = async (req, res, next) => {
       new ServerSideError(
         StatusCode.INTERNAL_SERVER_ERROR,
         "Failed to update chat topic"
+      )
+    );
+  }
+};
+
+export const deleteAllChat: RequestHandler = async (req, res, next) => {
+  try {
+    await prisma.chat.deleteMany({});
+
+    return res
+      .status(StatusCode.SUCCESS)
+      .json({ message: "All chats deleted" });
+  } catch (e) {
+    return next(
+      new ServerSideError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        "Failed to delete all chat"
+      )
+    );
+  }
+};
+
+export const deleteChatOnId: RequestHandler = async (req, res, next) => {
+  const { id } = req.params;
+
+  try {
+    await prisma.chat.delete({ where: { id } });
+
+    return res.status(StatusCode.SUCCESS).json({ message: "Chat deleted" });
+  } catch (e) {
+    return next(
+      new ServerSideError(
+        StatusCode.INTERNAL_SERVER_ERROR,
+        "Failed to delete chat"
       )
     );
   }

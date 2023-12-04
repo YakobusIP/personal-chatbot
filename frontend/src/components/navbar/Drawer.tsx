@@ -10,11 +10,15 @@ import {
   Heading,
   DrawerBody,
   VStack,
-  useColorMode
+  useColorMode,
+  DrawerFooter,
+  Button,
+  useDisclosure
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import RoomNumber from "@/components/navbar/RoomNumber";
 import { useNavigate } from "react-router-dom";
+import ManageChatModal from "./ManageChatModal";
 
 interface Props {
   rooms: Room[] | undefined;
@@ -25,6 +29,12 @@ interface Props {
 export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
   const { colorMode } = useColorMode();
   const navigate = useNavigate();
+
+  const {
+    isOpen: isOpenManage,
+    onClose: onCloseManage,
+    onOpen: onOpenManage
+  } = useDisclosure();
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose} placement="left">
@@ -59,6 +69,16 @@ export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
               })}
           </VStack>
         </DrawerBody>
+        <DrawerFooter>
+          <Button w={"full"} onClick={onOpenManage}>
+            Manage Chats
+          </Button>
+          <ManageChatModal
+            isOpen={isOpenManage}
+            onClose={onCloseManage}
+            rooms={rooms}
+          />
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

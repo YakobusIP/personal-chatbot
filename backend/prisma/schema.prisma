@@ -41,7 +41,7 @@ model Message {
   content   String
   createdAt DateTime @default(now())
 
-  chat   Chat   @relation(fields: [chatId], references: [id])
+  chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
   chatId String @db.Uuid
 
   questionId String?  @unique @db.Uuid

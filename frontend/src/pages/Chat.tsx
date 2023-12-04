@@ -92,7 +92,7 @@ export default function Chat() {
       ]);
 
       const events = new EventSource(
-        `${import.meta.env.VITE_BASE_AXIOS_URL}/chat/answer-question?chatId=${
+        `${import.meta.env.VITE_BASE_AXIOS_URL}/answer-question?chatId=${
           data.chatId
         }&content=${data.content}`
       );

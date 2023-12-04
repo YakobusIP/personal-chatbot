@@ -3,7 +3,9 @@ import {
   getChatRooms,
   createNewChat,
   getChatHistory,
-  editChatTopic
+  editChatTopic,
+  deleteAllChat,
+  deleteChatOnId
 } from "../controllers/chat.controller";
 import { chatEventHandler } from "../controllers/event.controller";
 
@@ -13,6 +15,7 @@ router.get("/room-list", getChatRooms);
 router.get("/:id", getChatHistory);
 router.post("/", createNewChat);
 router.put("/update-topic", editChatTopic);
-router.get("/answer-question", chatEventHandler);
+router.delete("/", deleteAllChat);
+router.delete("/:id", deleteChatOnId);
 
 export default router;
