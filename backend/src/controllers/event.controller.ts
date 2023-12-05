@@ -11,23 +11,25 @@ import {
 } from "langchain/prompts";
 import { GPTModel } from "../enum/gpt-model.enum";
 import { prisma } from "../lib/prisma";
-import { eventEmitter } from "../lib/event-emitter";
 
 let response = "";
 
 export const chatEventHandler: RequestHandler = async (req, res, next) => {
   const { chatId, content } = req.query;
 
+  // Generate a new conversation entry
+  const conversation = await prisma.conversation.create({
+    data: { chatId: chatId as string, summary: "" }
+  });
+
   // Save the message
-  const data = await prisma.message.create({
+  const question = await prisma.message.create({
     data: {
-      chatId: chatId as string,
+      conversationQuestionId: conversation.id,
       author: "USER",
       content: content as string
     }
   });
-
-  console.log(data, "data");
 
   // Set headers to stay open for SSE
   const headers = {
@@ -51,34 +53,84 @@ export const chatEventHandler: RequestHandler = async (req, res, next) => {
           res.write(
             `data: ${JSON.stringify({
               data: token,
-              questionId: data.id
+              conversationId: conversation.id
             })}\n\n`
           );
         },
+        // When LLM Chain ends, send ending mark and save the final response to the database
         async handleLLMEnd() {
+          // Send the ending mark (marked as [DONE])
           res.write(
             `data: ${JSON.stringify({
               data: "[DONE]",
-              questionId: data.id
+              conversationId: conversation.id
             })}\n\n`
           );
-          await prisma.message.create({
+
+          // Save the answer message
+          const answer = await prisma.message.create({
             data: {
+              conversationAnswerId: conversation.id,
               author: "CHATBOT",
-              content: response,
-              chatId: chatId as string,
-              questionId: data.id
+              content: response
             }
           });
+
+          // Update the conversation entry to fit both question and answer id
+          await prisma.conversation.update({
+            where: {
+              id: conversation.id
+            },
+            data: {
+              questionId: question.id,
+              answerId: answer.id
+            }
+          });
+
+          // Fetch last 5 conversation summary
+          const summaries = await prisma.conversation.findMany({
+            where: {
+              chatId: chatId as string
+            },
+            select: {
+              summary: true
+            },
+            skip: 1,
+            take: 1,
+            orderBy: {
+              createdAt: "desc"
+            }
+          });
+
+          // Generate new summary
+          memory.clear();
+
+          await memory.saveContext(
+            { input: content as string },
+            { output: response }
+          );
+
+          const messages = await memory.chatHistory.getMessages();
+          const summary = await memory.predictNewSummary(
+            messages,
+            summaries.length === 0 ? "" : summaries[0].summary
+          );
+
+          await prisma.conversation.update({
+            where: {
+              id: conversation.id
+            },
+            data: {
+              summary
+            }
+          });
+
           response = "";
           res.end();
         }
       }
     ]
   });
-
-  const history = await memory.loadMemoryVariables({});
-  console.log({ history });
 
   const prompt = ChatPromptTemplate.fromMessages([
     SystemMessagePromptTemplate.fromTemplate(

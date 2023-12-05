@@ -21,7 +21,6 @@ const io = new Server(server, {
 app.use(json());
 app.use(cors({ origin: "http://localhost:5173" }));
 app.use("/chat", chatRouter);
-app.get("/answer-question", chatEventHandler);
 
 app.use(errorMiddleware);
 

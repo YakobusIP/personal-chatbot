@@ -32,7 +32,7 @@ export default function Chat() {
   const fetchChatHistory = useCallback(
     async (chatId: string) => {
       try {
-        const response = await axiosClient.get(`/chat/${chatId}`);
+        const response = await axiosClient.get(`/chat/history/${chatId}`);
 
         const messageArray = response.data.data as Message[];
 

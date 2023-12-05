@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma";
 import ServerSideError from "../custom-errors/server-side-error";
 import { StatusCode } from "../enum/status-code.enum";
 import ClientSideError from "../custom-errors/client-side-error";
+import { memory } from "../lib/memory";
 
 export const getChatRooms: RequestHandler = async (req, res, next) => {
   try {
@@ -57,17 +58,33 @@ export const getChatHistory: RequestHandler = async (req, res, next) => {
     }
 
     const data = await prisma.message.findMany({
-      where: { chatId: id },
+      where: {
+        OR: [
+          {
+            conversationQuestion: {
+              chatId: id
+            }
+          },
+          {
+            conversationAnswer: {
+              chatId: id
+            }
+          }
+        ]
+      },
       select: {
         id: true,
-        chatId: true,
         author: true,
-        content: true
+        content: true,
+        conversationQuestionId: true,
+        conversationAnswerId: true
       },
       orderBy: {
         createdAt: "asc"
       }
     });
+
+    // await memory.clear();
 
     // const context = data.slice(-10);
 
