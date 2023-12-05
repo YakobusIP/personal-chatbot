@@ -3,7 +3,6 @@ import { prisma } from "../lib/prisma";
 import ServerSideError from "../custom-errors/server-side-error";
 import { StatusCode } from "../enum/status-code.enum";
 import ClientSideError from "../custom-errors/client-side-error";
-import { memory } from "../lib/memory";
 
 export const getChatRooms: RequestHandler = async (req, res, next) => {
   try {
@@ -83,17 +82,6 @@ export const getChatHistory: RequestHandler = async (req, res, next) => {
         createdAt: "asc"
       }
     });
-
-    // await memory.clear();
-
-    // const context = data.slice(-10);
-
-    // for (let i = 0; i < context.length; i += 2) {
-    //   await memory.saveContext(
-    //     { input: context[i].content },
-    //     { output: context[i + 1].content }
-    //   );
-    // }
 
     return res.status(StatusCode.SUCCESS).json({ data, topic: topic.topic });
   } catch (e) {
