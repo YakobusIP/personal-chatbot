@@ -133,6 +133,7 @@ export const editChatTopic: RequestHandler = async (req, res, next) => {
 export const deleteAllChat: RequestHandler = async (req, res, next) => {
   try {
     await prisma.chat.deleteMany({});
+    await prisma.message.deleteMany({});
 
     return res
       .status(StatusCode.SUCCESS)
@@ -151,7 +152,32 @@ export const deleteChatOnId: RequestHandler = async (req, res, next) => {
   const { id } = req.params;
 
   try {
+    const conversations = await prisma.conversation.findMany({
+      where: {
+        chatId: id
+      },
+      select: {
+        id: true
+      }
+    });
+
     await prisma.chat.delete({ where: { id } });
+    await prisma.message.deleteMany({
+      where: {
+        OR: [
+          {
+            conversationQuestionId: {
+              in: conversations.map((item) => item.id)
+            }
+          },
+          {
+            conversationAnswerId: {
+              in: conversations.map((item) => item.id)
+            }
+          }
+        ]
+      }
+    });
 
     return res.status(StatusCode.SUCCESS).json({ message: "Chat deleted" });
   } catch (e) {

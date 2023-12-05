@@ -42,11 +42,11 @@ export default function Chat() {
           setMessages((prevMessage) => [
             ...prevMessage,
             {
-              chatId: message.chatId,
               id: message.id,
               author: message.author,
               content: message.content,
-              questionId: message.questionId
+              conversationQuestionId: message.conversationQuestionId,
+              conversationAnswerId: message.conversationAnswerId
             }
           ]);
         });
@@ -73,27 +73,27 @@ export default function Chat() {
   const sendMessage = (input: string) => {
     if (input.length > 0) {
       const data: Message = {
-        chatId: id as string,
         id: "",
         author: "USER",
         content: input,
-        questionId: null
+        conversationQuestionId: null,
+        conversationAnswerId: null
       };
 
       setMessages((prevMessage) => [
         ...prevMessage,
         {
-          chatId: data.chatId,
           id: data.id,
           author: data.author,
           content: data.content,
-          questionId: null
+          conversationQuestionId: data.conversationQuestionId,
+          conversationAnswerId: data.conversationAnswerId
         }
       ]);
 
       const events = new EventSource(
-        `${import.meta.env.VITE_BASE_AXIOS_URL}/answer-question?chatId=${
-          data.chatId
+        `${import.meta.env.VITE_BASE_AXIOS_URL}/chat/answer-question?chatId=${
+          id as string
         }&content=${data.content}`
       );
 
@@ -107,7 +107,8 @@ export default function Chat() {
 
         setMessages((prevMessages) => {
           const questionIndex = prevMessages.findIndex(
-            (message) => message.id.length === 0
+            (message) =>
+              message.conversationQuestionId && message.id.length === 0
           );
 
           if (questionIndex !== -1) {
@@ -115,13 +116,13 @@ export default function Chat() {
               ...prevMessages.slice(0, questionIndex),
               {
                 ...prevMessages[questionIndex],
-                id: data.questionId
+                conversationQuestionId: data.conversationId
               },
               ...prevMessages.slice(questionIndex + 1)
             ];
           } else {
             const answerIndex = prevMessages.findIndex(
-              (message) => message.questionId === data.questionId
+              (message) => message.conversationAnswerId === data.conversationId
             );
 
             if (answerIndex !== -1) {
@@ -143,11 +144,11 @@ export default function Chat() {
               return [
                 ...prevMessages,
                 {
-                  chatId: id as string,
                   id: "",
                   author: "CHATBOT",
                   content: data.data,
-                  questionId: data.questionId
+                  conversationQuestionId: null,
+                  conversationAnswerId: data.conversationId
                 }
               ];
             }
