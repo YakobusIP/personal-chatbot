@@ -3,15 +3,20 @@ import {
   getChatRooms,
   createNewChat,
   getChatHistory,
-  addRecentGPTMessage
+  editChatTopic,
+  deleteAllChat,
+  deleteChatOnId
 } from "../controllers/chat.controller";
-import { authMiddleware } from "../middleware/auth.middleware";
+import { chatEventHandler } from "../controllers/event.controller";
 
 const router = Router();
 
-router.get("/room-list", authMiddleware, getChatRooms);
-router.get("/chat/:id", authMiddleware, getChatHistory);
-router.post("/new-chat", authMiddleware, createNewChat);
-router.post("/recent-message", authMiddleware, addRecentGPTMessage);
+router.get("/room-list", getChatRooms);
+router.get("/history/:id", getChatHistory);
+router.post("/", createNewChat);
+router.put("/update-topic", editChatTopic);
+router.delete("/", deleteAllChat);
+router.delete("/:id", deleteChatOnId);
+router.get("/answer-question", chatEventHandler);
 
 export default router;

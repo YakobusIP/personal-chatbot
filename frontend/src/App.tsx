@@ -1,21 +1,16 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "@/pages/Home";
 import Chat from "@/pages/Chat";
-import Login from "@/pages/Login";
-import ProtectedRoutes from "./context/ProtectedRoutes";
-import { AuthProvider } from "./context/AuthContext";
+import { ContextProvider } from "./context/ContextProvider";
 
 function App() {
   return (
-    <AuthProvider>
+    <ContextProvider>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route element={<ProtectedRoutes />}>
-          <Route path="/home" element={<Home />} />
-          <Route path="/chat/:id" element={<Chat />} />
-        </Route>
+        <Route path="/home" element={<Home />} />
+        <Route path="/chat/:id" element={<Chat />} />
       </Routes>
-    </AuthProvider>
+    </ContextProvider>
   );
 }
 

@@ -1,4 +1,11 @@
-import { Button, Flex, Heading, useToast } from "@chakra-ui/react";
+import {
+  Button,
+  Flex,
+  Heading,
+  Image,
+  useColorMode,
+  useToast
+} from "@chakra-ui/react";
 import { axiosClient } from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import RootLayout from "@/components/RootLayout";
@@ -7,10 +14,11 @@ import { AxiosError } from "axios";
 export default function Home() {
   const toast = useToast();
   const navigate = useNavigate();
+  const { colorMode } = useColorMode();
 
   const createNewRoom = async () => {
     try {
-      const response = await axiosClient.post("/new-chat");
+      const response = await axiosClient.post("/chat");
 
       navigate(`/chat/${response.data.data.id}`);
 
@@ -43,8 +51,17 @@ export default function Home() {
         justifyContent={"center"}
         alignItems={"center"}
         rowGap={4}
+        p={8}
       >
-        <Heading>How can I help you today?</Heading>
+        <Image
+          src={
+            colorMode === "dark"
+              ? "/gpt-white-transparent.png"
+              : "/gpt-black-transparent.png"
+          }
+          boxSize={24}
+        />
+        <Heading textAlign={"center"}>How can I help you today?</Heading>
         <Button onClick={() => createNewRoom()}>Create new chat</Button>
       </Flex>
     </RootLayout>

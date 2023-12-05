@@ -12,19 +12,13 @@ import {
   VStack,
   useColorMode,
   DrawerFooter,
-  Menu,
-  MenuButton,
-  Avatar,
-  Text,
-  MenuList,
-  MenuItem
+  Button,
+  useDisclosure
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
-import RoomNumber from "@/components/RoomNumber";
-import { useContext } from "react";
-import { AuthContext } from "@/context/AuthContext";
+import RoomNumber from "@/components/navbar/RoomNumber";
 import { useNavigate } from "react-router-dom";
-import { axiosClient } from "@/lib/axios";
+import ManageChatModal from "./ManageChatModal";
 
 interface Props {
   rooms: Room[] | undefined;
@@ -34,15 +28,13 @@ interface Props {
 
 export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
   const { colorMode } = useColorMode();
-  const { setAuthenticated, username } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const logout = () => {
-    navigate("/login");
-    localStorage.removeItem("token");
-    setAuthenticated(false);
-    delete axiosClient.defaults.headers.common["Authorization"];
-  };
+  const {
+    isOpen: isOpenManage,
+    onClose: onCloseManage,
+    onOpen: onOpenManage
+  } = useDisclosure();
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose} placement="left">
@@ -58,7 +50,11 @@ export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
               _hover={{ cursor: "pointer" }}
               onClick={onClose}
             />
-            <Flex alignItems={"center"} columnGap={2}>
+            <Flex
+              alignItems={"center"}
+              columnGap={2}
+              onClick={() => navigate("/home")}
+            >
               <Image src="/gpt-black-logo.jpg" boxSize={8} />
               <Heading fontSize={"xl"}>Personal Chatbot</Heading>
             </Flex>
@@ -69,32 +65,19 @@ export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
             <Heading fontSize={"2xl"}>List of chats</Heading>
             {rooms &&
               rooms.map((room) => {
-                return <RoomNumber id={room.id} />;
+                return <RoomNumber id={room.id} topic={room.topic} />;
               })}
           </VStack>
         </DrawerBody>
-        <DrawerFooter w={"full"}>
-          <Menu>
-            <MenuButton
-              w={"full"}
-              _hover={{
-                bgColor:
-                  colorMode === "dark"
-                    ? "navbar.dark_hover"
-                    : "navbar.light_hover"
-              }}
-              p={2}
-              rounded={"lg"}
-            >
-              <Flex columnGap={4} alignItems={"center"}>
-                <Avatar name={username} size={"md"} />
-                <Text fontWeight={"bold"}>{username}</Text>
-              </Flex>
-            </MenuButton>
-            <MenuList>
-              <MenuItem onClick={logout}>Logout</MenuItem>
-            </MenuList>
-          </Menu>
+        <DrawerFooter>
+          <Button w={"full"} onClick={onOpenManage}>
+            Manage Chats
+          </Button>
+          <ManageChatModal
+            isOpen={isOpenManage}
+            onClose={onCloseManage}
+            rooms={rooms}
+          />
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

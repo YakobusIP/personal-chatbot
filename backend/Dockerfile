@@ -24,14 +24,9 @@ RUN yarn run build
 
 # Set the environment to production
 ENV NODE_ENV production
-ENV DATABASE_URL postgresql://postgres:@34.42.207.174:5432/personal_chatbot?schema=public
 
 # Expose port
 EXPOSE 8080
-
-# Migrate prisma and generate client
-RUN npx prisma migrate dev
-RUN npx prisma generate
 
 # Run the web service on container startup.
 CMD [ "node", "dist/index.js" ]
