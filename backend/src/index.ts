@@ -1,20 +1,36 @@
-import express from "express";
-import { createServer } from "http";
-import chatRouter from "./routes/chat.router";
+import express, { Application } from "express";
 import { json } from "body-parser";
 import cors from "cors";
+import chatRouter from "./routes/chat.router";
 import { errorMiddleware } from "./middleware/error.middleware";
 
-const app = express();
+class App {
+  public app: Application;
 
-const server = createServer(app);
+  constructor() {
+    this.app = express();
+    this.setMiddlewares();
+    this.setRoutes();
+    this.setErrorMiddleware();
+  }
 
-app.use(json());
-app.use(cors({ origin: "http://localhost:5173" }));
-app.use("/chat", chatRouter);
+  private setMiddlewares(): void {
+    this.app.use(cors({ origin: "http://localhost:5173" }));
+    this.app.use(json());
+  }
 
-app.use(errorMiddleware);
+  private setRoutes(): void {
+    this.app.use("/chat", chatRouter);
+  }
 
-server.listen(process.env.PORT, () => {
-  console.log(`Server started on port ${process.env.PORT}`);
+  private setErrorMiddleware(): void {
+    this.app.use(errorMiddleware);
+  }
+}
+
+const PORT = process.env.PORT || 4000;
+const { app } = new App();
+
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}`);
 });

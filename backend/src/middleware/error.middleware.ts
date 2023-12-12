@@ -1,12 +1,18 @@
 import { ErrorRequestHandler } from "express";
-import { CustomError } from "../custom-errors/custom-error";
+import { HttpStatusCode } from "axios";
+import { ApiError } from "../lib/errors";
 
 export const errorMiddleware: ErrorRequestHandler = (
-  err: CustomError,
+  err: ApiError,
   req,
   res,
   next
 ) => {
   console.error(err);
-  return res.status(err.statusCode).json({ message: err.message });
+
+  const status = err.statusCode ?? HttpStatusCode.InternalServerError;
+
+  res.status(status).json({ message: err.message });
+
+  return next();
 };

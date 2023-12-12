@@ -1,179 +1,97 @@
 import { RequestHandler } from "express";
-import { prisma } from "../lib/prisma";
-import ServerSideError from "../custom-errors/server-side-error";
-import { StatusCode } from "../enum/status-code.enum";
-import ClientSideError from "../custom-errors/client-side-error";
+import { API } from "../lib/api";
+import ChatService from "../services/chat.service";
+import { HttpStatusCode } from "axios";
+import { HTTPNotFoundError } from "../lib/errors";
 
-export const getChatRooms: RequestHandler = async (req, res, next) => {
-  try {
-    const data = await prisma.chat.findMany({
-      select: { id: true, topic: true }
-    });
+export class ChatController extends API {
+  private readonly chatService = new ChatService();
 
-    return res.status(StatusCode.SUCCESS).json({ data });
-  } catch (e) {
-    return next(
-      new ServerSideError(
-        StatusCode.INTERNAL_SERVER_ERROR,
-        "Failed to fetch chat rooms"
-      )
-    );
-  }
-};
-
-export const createNewChat: RequestHandler = async (req, res, next) => {
-  try {
-    const data = await prisma.chat.create({
-      data: {
-        topic: "New Chat"
-      }
-    });
-
-    return res.status(StatusCode.CREATED).json({
-      data,
-      message: "Chat successfully created"
-    });
-  } catch (e) {
-    return next(
-      new ServerSideError(
-        StatusCode.INTERNAL_SERVER_ERROR,
-        "Failed to create chat"
-      )
-    );
-  }
-};
-
-export const getChatHistory: RequestHandler = async (req, res, next) => {
-  const id = req.params.id;
-
-  try {
-    const topic = await prisma.chat.findFirst({
-      where: { id: id },
-      select: { topic: true }
-    });
-
-    if (!topic) {
-      return next(new ClientSideError(404, "Chat not found"));
+  public getChatRooms: RequestHandler = async (req, res, next) => {
+    try {
+      const rooms = await this.chatService.getChatRooms();
+      return this.send(res, rooms);
+    } catch (error) {
+      next(error);
     }
+  };
 
-    const data = await prisma.message.findMany({
-      where: {
-        OR: [
-          {
-            conversationQuestion: {
-              chatId: id
-            }
-          },
-          {
-            conversationAnswer: {
-              chatId: id
-            }
-          }
-        ]
-      },
-      select: {
-        id: true,
-        author: true,
-        content: true,
-        conversationQuestionId: true,
-        conversationAnswerId: true
-      },
-      orderBy: {
-        createdAt: "asc"
+  public getChatHistory: RequestHandler = async (req, res, next) => {
+    try {
+      const chatId = req.params.chatId;
+
+      const chat = await this.chatService.getChatOnId(chatId);
+
+      if (!chat) {
+        throw new HTTPNotFoundError("Chat not found");
       }
-    });
 
-    return res.status(StatusCode.SUCCESS).json({ data, topic: topic.topic });
-  } catch (e) {
-    return next(
-      new ServerSideError(
-        StatusCode.INTERNAL_SERVER_ERROR,
-        "Failed to fetch chat history"
-      )
-    );
-  }
-};
+      const history = await this.chatService.getChatHistory(chatId);
 
-export const editChatTopic: RequestHandler = async (req, res, next) => {
-  try {
-    await prisma.chat.update({
-      where: {
-        id: req.body.id
-      },
-      data: {
-        topic: req.body.topic
+      return this.send(res, history);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public createNewChatRoom: RequestHandler = async (req, res, next) => {
+    try {
+      const room = await this.chatService.createChatRoom();
+      return this.send(
+        res,
+        room,
+        "Chat successfully created",
+        HttpStatusCode.Created
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public updateChatRoomTopic: RequestHandler = async (req, res, next) => {
+    try {
+      const chat = await this.chatService.getChatOnId(req.body.id);
+
+      if (!chat) {
+        throw new HTTPNotFoundError("Chat not found");
       }
-    });
 
-    return res
-      .status(StatusCode.SUCCESS)
-      .json({ topic: req.body.topic, message: "Chat topic updated" });
-  } catch (e) {
-    return next(
-      new ServerSideError(
-        StatusCode.INTERNAL_SERVER_ERROR,
-        "Failed to update chat topic"
-      )
-    );
-  }
-};
+      const data = await this.chatService.updateChatRoomTopic(
+        req.body.id,
+        req.body.topic
+      );
 
-export const deleteAllChat: RequestHandler = async (req, res, next) => {
-  try {
-    await prisma.chat.deleteMany({});
-    await prisma.message.deleteMany({});
+      return this.send(res, data, "Topic updated", HttpStatusCode.Created);
+    } catch (error) {
+      next(error);
+    }
+  };
 
-    return res
-      .status(StatusCode.SUCCESS)
-      .json({ message: "All chats deleted" });
-  } catch (e) {
-    return next(
-      new ServerSideError(
-        StatusCode.INTERNAL_SERVER_ERROR,
-        "Failed to delete all chat"
-      )
-    );
-  }
-};
+  public deleteAllChat: RequestHandler = async (req, res, next) => {
+    try {
+      const data = await this.chatService.deleteAllChatRoom();
 
-export const deleteChatOnId: RequestHandler = async (req, res, next) => {
-  const { id } = req.params;
+      return this.send(res, data, "All chats deleted");
+    } catch (error) {
+      next(error);
+    }
+  };
 
-  try {
-    const conversations = await prisma.conversation.findMany({
-      where: {
-        chatId: id
-      },
-      select: {
-        id: true
+  public deleteChatOnId: RequestHandler = async (req, res, next) => {
+    try {
+      const chatId = req.params.chatId;
+
+      const chat = await this.chatService.getChatOnId(chatId);
+
+      if (!chat) {
+        throw new HTTPNotFoundError("Chat not found");
       }
-    });
 
-    await prisma.chat.delete({ where: { id } });
-    await prisma.message.deleteMany({
-      where: {
-        OR: [
-          {
-            conversationQuestionId: {
-              in: conversations.map((item) => item.id)
-            }
-          },
-          {
-            conversationAnswerId: {
-              in: conversations.map((item) => item.id)
-            }
-          }
-        ]
-      }
-    });
+      const data = await this.chatService.deleteChatRoomOnId(chatId);
 
-    return res.status(StatusCode.SUCCESS).json({ message: "Chat deleted" });
-  } catch (e) {
-    return next(
-      new ServerSideError(
-        StatusCode.INTERNAL_SERVER_ERROR,
-        "Failed to delete chat"
-      )
-    );
-  }
-};
+      return this.send(res, data, "Chat deleted");
+    } catch (error) {
+      next(error);
+    }
+  };
+}

@@ -1,22 +1,25 @@
 import { Router } from "express";
-import {
-  getChatRooms,
-  createNewChat,
-  getChatHistory,
-  editChatTopic,
-  deleteAllChat,
-  deleteChatOnId
-} from "../controllers/chat.controller";
+import { ChatController } from "../controllers/chat.controller";
 import { chatEventHandler } from "../controllers/event.controller";
 
-const router = Router();
+class ChatRouter {
+  public router: Router;
+  private readonly controller: ChatController;
 
-router.get("/room-list", getChatRooms);
-router.get("/history/:id", getChatHistory);
-router.post("/", createNewChat);
-router.put("/update-topic", editChatTopic);
-router.delete("/", deleteAllChat);
-router.delete("/:id", deleteChatOnId);
-router.get("/answer-question", chatEventHandler);
+  constructor() {
+    this.router = Router();
+    this.controller = new ChatController();
+    this.routes();
+  }
 
-export default router;
+  public routes(): void {
+    this.router.get("/room-list", this.controller.getChatRooms);
+    this.router.get("/history/:chatId", this.controller.getChatHistory);
+    this.router.post("/", this.controller.createNewChatRoom);
+    this.router.put("/update-topic", this.controller.updateChatRoomTopic);
+    this.router.delete("/", this.controller.deleteAllChat);
+    this.router.delete("/:chatId", this.controller.deleteChatOnId);
+  }
+}
+
+export default new ChatRouter().router;
