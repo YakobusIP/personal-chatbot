@@ -1,6 +1,6 @@
 import { RequestHandler } from "express";
 import { API } from "../lib/api";
-import ChatService from "../services/chat.service";
+import ChatService from "../service/chat.service";
 import { HttpStatusCode } from "axios";
 import { HTTPNotFoundError } from "../lib/errors";
 
@@ -50,14 +50,14 @@ export class ChatController extends API {
 
   public updateChatRoomTopic: RequestHandler = async (req, res, next) => {
     try {
-      const chat = await this.chatService.getChatOnId(req.body.id);
+      const chat = await this.chatService.getChatOnId(req.body.chatId);
 
       if (!chat) {
         throw new HTTPNotFoundError("Chat not found");
       }
 
       const data = await this.chatService.updateChatRoomTopic(
-        req.body.id,
+        req.body.chatId,
         req.body.topic
       );
 

@@ -1,14 +1,19 @@
 import { HttpStatusCode } from "axios";
+import ValidationError from "../types/validation.type";
 
 interface IAPiError extends Error {
   statusCode: number;
-  rawErrors?: string[];
+  rawErrors?: string[] | ValidationError[];
 }
 
 export class ApiError extends Error implements IAPiError {
   statusCode: number;
-  rawErrors?: string[] | undefined;
-  constructor(statusCode: number, message: string, rawErrors?: string[]) {
+  rawErrors?: string[] | ValidationError[] | undefined;
+  constructor(
+    statusCode: number,
+    message: string,
+    rawErrors?: string[] | ValidationError[]
+  ) {
     super(message);
     this.statusCode = statusCode;
     if (rawErrors) {
@@ -40,5 +45,11 @@ export class HTTPUnauthorizedError extends ApiError {
 export class HTTPNotFoundError extends ApiError {
   constructor(message: string, errors?: string[]) {
     super(HttpStatusCode.NotFound, message, errors);
+  }
+}
+
+export class ZodValidationError extends ApiError {
+  constructor(message: string, errors: ValidationError[]) {
+    super(HttpStatusCode.BadRequest, message, errors);
   }
 }

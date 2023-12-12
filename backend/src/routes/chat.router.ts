@@ -1,6 +1,8 @@
 import { Router } from "express";
-import { ChatController } from "../controllers/chat.controller";
-import { chatEventHandler } from "../controllers/event.controller";
+import { ChatController } from "../controller/chat.controller";
+import { chatEventHandler } from "../controller/event.controller";
+import { validateMiddleware } from "../middleware/validate.middleware";
+import { updateTopicSchema } from "../schema/chat.schema";
 
 class ChatRouter {
   public router: Router;
@@ -16,7 +18,11 @@ class ChatRouter {
     this.router.get("/room-list", this.controller.getChatRooms);
     this.router.get("/history/:chatId", this.controller.getChatHistory);
     this.router.post("/", this.controller.createNewChatRoom);
-    this.router.put("/update-topic", this.controller.updateChatRoomTopic);
+    this.router.put(
+      "/update-topic",
+      validateMiddleware(updateTopicSchema),
+      this.controller.updateChatRoomTopic
+    );
     this.router.delete("/", this.controller.deleteAllChat);
     this.router.delete("/:chatId", this.controller.deleteChatOnId);
   }
