@@ -10,19 +10,27 @@ import { axiosClient } from "@/lib/axios";
 import { useLocation, useParams } from "react-router-dom";
 import { useCallback, useContext, useEffect, useState } from "react";
 import RootLayout from "@/components/RootLayout";
-import ChatInput from "@/components/chat/ChatInput";
-import ChatMessage from "@/components/chat/ChatMessage";
+import ChatInput from "@/pages/Chat/ChatInput";
+import ChatMessage from "@/pages/Chat/ChatMessage";
 import Message from "@/types/message.type";
 import { IoMdArrowDown } from "react-icons/io";
-import { AxiosError } from "axios";
+import { AxiosError, HttpStatusCode } from "axios";
 import { ChatTopicContext } from "@/context/ContextProvider";
 import Chunk from "@/types/chunk.type";
+import {
+  addAnswerToList,
+  appendAnswerChunk,
+  sleep,
+  updateQuestionId
+} from "./ChatService";
 
 export default function Chat() {
   const toast = useToast();
   const location = useLocation();
 
   const { id } = useParams();
+  const chatId = id as string;
+
   const { colorMode } = useColorMode();
   const isLg = useBreakpointValue({ base: false, lg: true });
   const { setTopic } = useContext(ChatTopicContext);
@@ -67,10 +75,10 @@ export default function Chat() {
 
   useEffect(() => {
     setMessages([]);
-    fetchChatHistory(id as string);
-  }, [fetchChatHistory, id, location]);
+    fetchChatHistory(chatId);
+  }, [fetchChatHistory, chatId, location]);
 
-  const sendMessage = (input: string) => {
+  const sendMessage = async (input: string) => {
     if (input.length > 0) {
       const data: Message = {
         id: "",
@@ -91,70 +99,66 @@ export default function Chat() {
         }
       ]);
 
-      const events = new EventSource(
-        `${import.meta.env.VITE_BASE_AXIOS_URL}/chat/answer-question?chatId=${
-          id as string
-        }&content=${data.content}`
-      );
+      const response = await axiosClient.post("/chat/question", {
+        chatId: chatId,
+        message: data.content
+      });
 
-      events.onmessage = (event) => {
-        const data: Chunk = JSON.parse(event.data);
+      if (response.status === HttpStatusCode.Ok) {
+        await sleep(1000);
+        const events = new EventSource(
+          `${import.meta.env.VITE_BASE_AXIOS_URL}/event/sse?chatId=${chatId}`
+        );
 
-        if (data.data === "[DONE]") {
-          events.close();
-          scrollToBottom();
-        }
+        events.onmessage = (event) => {
+          const data: Chunk = JSON.parse(event.data);
 
-        setMessages((prevMessages) => {
-          const questionIndex = prevMessages.findIndex(
-            (message) =>
-              message.conversationQuestionId && message.id.length === 0
-          );
+          if (data.data === "[DONE]") {
+            events.close();
+            scrollToBottom();
+          }
 
-          if (questionIndex !== -1) {
-            return [
-              ...prevMessages.slice(0, questionIndex),
-              {
-                ...prevMessages[questionIndex],
-                conversationQuestionId: data.conversationId
-              },
-              ...prevMessages.slice(questionIndex + 1)
-            ];
-          } else {
-            const answerIndex = prevMessages.findIndex(
-              (message) => message.conversationAnswerId === data.conversationId
+          setMessages((prevMessages) => {
+            const questionIndex = prevMessages.findIndex(
+              (message) =>
+                message.conversationQuestionId && message.id.length === 0
             );
 
-            if (answerIndex !== -1) {
-              scrollToBottom();
-
-              if (data.data === "[DONE]") {
-                return prevMessages;
-              } else {
-                return [
-                  ...prevMessages.slice(0, answerIndex),
-                  {
-                    ...prevMessages[answerIndex],
-                    content: prevMessages[answerIndex].content.concat(data.data)
-                  },
-                  ...prevMessages.slice(answerIndex + 1)
-                ];
-              }
+            if (questionIndex !== -1) {
+              return updateQuestionId(
+                prevMessages,
+                questionIndex,
+                data.conversationId
+              );
             } else {
-              return [
-                ...prevMessages,
-                {
-                  id: "",
-                  author: "CHATBOT",
-                  content: data.data,
-                  conversationQuestionId: null,
-                  conversationAnswerId: data.conversationId
+              const answerIndex = prevMessages.findIndex(
+                (message) =>
+                  message.conversationAnswerId === data.conversationId
+              );
+
+              if (answerIndex !== -1) {
+                scrollToBottom();
+
+                if (data.data === "[DONE]") {
+                  return prevMessages;
+                } else {
+                  return appendAnswerChunk(
+                    prevMessages,
+                    answerIndex,
+                    data.data
+                  );
                 }
-              ];
+              } else {
+                return addAnswerToList(
+                  prevMessages,
+                  data.data,
+                  data.conversationId
+                );
+              }
             }
-          }
-        });
-      };
+          });
+        };
+      }
     }
   };
 

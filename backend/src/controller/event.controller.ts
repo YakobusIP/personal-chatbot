@@ -107,8 +107,9 @@ export class EventController {
 
     const prompt = ChatPromptTemplate.fromMessages([
       SystemMessagePromptTemplate.fromTemplate(
-        "The following is a conversation between a human and an AI. The AI performs like ChatGPT. These are the chat contexts: {context}"
+        "The following is a conversation between a human and an AI. The AI performs like ChatGPT."
       ),
+      SystemMessagePromptTemplate.fromTemplate("{context}"),
       HumanMessagePromptTemplate.fromTemplate("{input}")
     ]);
 

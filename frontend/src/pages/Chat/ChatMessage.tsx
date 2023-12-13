@@ -39,6 +39,7 @@ export default function ChatMessage({ author, content }: Props) {
       py={8}
       px={8}
       rowGap={4}
+      lineHeight={"40px"}
     >
       <Flex alignItems={"center"} columnGap={4}>
         <Avatar

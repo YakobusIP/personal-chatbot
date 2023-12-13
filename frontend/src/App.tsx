@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "@/pages/Home";
-import Chat from "@/pages/Chat";
+import Chat from "@/pages/Chat/Chat";
 import { ContextProvider } from "./context/ContextProvider";
 
 function App() {
