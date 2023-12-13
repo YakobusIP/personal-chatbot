@@ -21,11 +21,8 @@ export class EventController {
 
     // Subscribe to event emitter
     eventEmitter.on(chatId, (response) => {
-      console.log(response);
       this.userQuestion = response;
     });
-
-    console.log(this, "outside");
 
     // Generate a new conversation entry
     const conversation = await this.eventService.createConversation(chatId);
@@ -127,7 +124,7 @@ export class EventController {
     });
 
     req.on("close", () => {
-      console.log("event closed");
+      console.log("SSE closed");
     });
   };
 }
