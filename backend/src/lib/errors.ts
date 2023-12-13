@@ -1,5 +1,5 @@
 import { HttpStatusCode } from "axios";
-import ValidationError from "../types/validation.type";
+import ValidationError from "../types/validation-error.type";
 
 interface IAPiError extends Error {
   statusCode: number;

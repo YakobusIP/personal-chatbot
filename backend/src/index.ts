@@ -2,6 +2,7 @@ import express, { Application } from "express";
 import { json } from "body-parser";
 import cors from "cors";
 import chatRouter from "./routes/chat.router";
+import eventRouter from "./routes/event.router";
 import { errorMiddleware } from "./middleware/error.middleware";
 
 class App {
@@ -21,6 +22,7 @@ class App {
 
   private setRoutes(): void {
     this.app.use("/chat", chatRouter);
+    this.app.use("/event", eventRouter);
   }
 
   private setErrorMiddleware(): void {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const createQuestionSchema = z.object({
+const CreateQuestionSchema = z.object({
   chatId: z
     .string({ required_error: "Chat id is required" })
     .trim()
@@ -8,7 +8,7 @@ const createQuestionSchema = z.object({
   message: z.string().trim()
 });
 
-const updateTopicSchema = z.object({
+const UpdateTopicSchema = z.object({
   chatId: z
     .string({ required_error: "Chat id is required" })
     .trim()
@@ -18,4 +18,4 @@ const updateTopicSchema = z.object({
     .min(1, "Topic cannot be empty")
 });
 
-export { createQuestionSchema, updateTopicSchema };
+export { CreateQuestionSchema, UpdateTopicSchema };

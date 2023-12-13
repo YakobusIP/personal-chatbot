@@ -3,6 +3,8 @@ import { API } from "../lib/api";
 import ChatService from "../service/chat.service";
 import { HttpStatusCode } from "axios";
 import { HTTPNotFoundError } from "../lib/errors";
+import { z } from "zod";
+import { CreateQuestionSchema, UpdateTopicSchema } from "../schema/chat.schema";
 
 export class ChatController extends API {
   private readonly chatService = new ChatService();
@@ -48,18 +50,30 @@ export class ChatController extends API {
     }
   };
 
-  public updateChatRoomTopic: RequestHandler = async (req, res, next) => {
+  public createNewQuestion: RequestHandler = async (req, res, next) => {
+    type body = z.infer<typeof CreateQuestionSchema>;
+    const { chatId, message }: body = req.body;
+
     try {
-      const chat = await this.chatService.getChatOnId(req.body.chatId);
+      this.chatService.publishMessageToEE(chatId, message);
+      return this.send(res, null);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public updateChatRoomTopic: RequestHandler = async (req, res, next) => {
+    type body = z.infer<typeof UpdateTopicSchema>;
+    const { chatId, topic }: body = req.body;
+
+    try {
+      const chat = await this.chatService.getChatOnId(chatId);
 
       if (!chat) {
         throw new HTTPNotFoundError("Chat not found");
       }
 
-      const data = await this.chatService.updateChatRoomTopic(
-        req.body.chatId,
-        req.body.topic
-      );
+      const data = await this.chatService.updateChatRoomTopic(chatId, topic);
 
       return this.send(res, data, "Topic updated", HttpStatusCode.Created);
     } catch (error) {

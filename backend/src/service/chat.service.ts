@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma";
+import { eventEmitter } from "../lib/event";
 
 export default class ChatService {
   public async getChatRooms() {
@@ -90,5 +91,9 @@ export default class ChatService {
         ]
       }
     });
+  }
+
+  public publishMessageToEE(chatId: string, message: string) {
+    eventEmitter.emit(chatId, message);
   }
 }

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError, z } from "zod";
 import { ZodValidationError } from "../lib/errors";
-import ValidationError from "../types/validation.type";
+import ValidationError from "../types/validation-error.type";
 
 export const validateMiddleware =
   (schema: z.AnyZodObject | z.ZodOptional<z.AnyZodObject>) =>

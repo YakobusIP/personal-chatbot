@@ -1,157 +1,133 @@
 import { RequestHandler } from "express";
-import Message from "../types/message.type";
-import { memory } from "../lib/memory";
 import { ChatOpenAI } from "langchain/chat_models/openai";
-import { ConversationChain } from "langchain/chains";
+import { LLMChain } from "langchain/chains";
 import {
   ChatPromptTemplate,
   HumanMessagePromptTemplate,
-  MessagesPlaceholder,
   SystemMessagePromptTemplate
 } from "langchain/prompts";
 import { GPTModel } from "../enum/gpt-model.enum";
-import { prisma } from "../lib/prisma";
+import EventService from "../service/event.service";
+import { eventEmitter } from "../lib/event";
 
-let response = "";
+export class EventController {
+  private readonly eventService = new EventService();
+  private userQuestion: string = "";
+  private GPTAnswer: string = "";
+  private SSEMARK: string = "[DONE]";
 
-export const chatEventHandler: RequestHandler = async (req, res, next) => {
-  const { chatId, content } = req.query;
+  public answerQuestion: RequestHandler = async (req, res, next) => {
+    const { chatId } = req.query as { chatId: string };
 
-  // Generate a new conversation entry
-  const conversation = await prisma.conversation.create({
-    data: { chatId: chatId as string, summary: "" }
-  });
+    // Subscribe to event emitter
+    eventEmitter.on(chatId, (response) => {
+      console.log(response);
+      this.userQuestion = response;
+    });
 
-  // Save the message
-  const question = await prisma.message.create({
-    data: {
-      conversationQuestionId: conversation.id,
-      author: "USER",
-      content: content as string
-    }
-  });
+    console.log(this, "outside");
 
-  // Set headers to stay open for SSE
-  const headers = {
-    "Content-Type": "text/event-stream",
-    Connection: "keep-alive",
-    "Cache-Control": "no-cache"
-  };
+    // Generate a new conversation entry
+    const conversation = await this.eventService.createConversation(chatId);
 
-  res.writeHead(200, headers);
+    // Save the question
+    const question = await this.eventService.createQuestion(
+      conversation.id,
+      this.userQuestion
+    );
 
-  // Define the model
-  const model = new ChatOpenAI({
-    temperature: 0.5,
-    modelName: GPTModel.MAIN_CHAIN,
-    streaming: true,
-    callbacks: [
-      {
-        // Send data each token received from the LLM
-        handleLLMNewToken(token) {
-          response = response.concat(token);
-          res.write(
-            `data: ${JSON.stringify({
-              data: token,
-              conversationId: conversation.id
-            })}\n\n`
-          );
-        },
-        // When LLM Chain ends, send ending mark and save the final response to the database
-        async handleLLMEnd() {
-          // Send the ending mark (marked as [DONE])
-          res.write(
-            `data: ${JSON.stringify({
-              data: "[DONE]",
-              conversationId: conversation.id
-            })}\n\n`
-          );
+    // Set headers to stay open for SSE
+    const headers = {
+      "Content-Type": "text/event-stream",
+      Connection: "keep-alive",
+      "Cache-Control": "no-cache"
+    };
 
-          // Save the answer message
-          const answer = await prisma.message.create({
-            data: {
-              conversationAnswerId: conversation.id,
-              author: "CHATBOT",
-              content: response
-            }
-          });
+    res.writeHead(200, headers);
 
-          // Update the conversation entry to fit both question and answer id
-          await prisma.conversation.update({
-            where: {
-              id: conversation.id
-            },
-            data: {
-              questionId: question.id,
-              answerId: answer.id
-            }
-          });
+    // Define the model
+    const model = new ChatOpenAI({
+      temperature: 0.5,
+      modelName: GPTModel.MAIN_CHAIN,
+      streaming: true,
+      callbacks: [
+        {
+          // Send data each token received from the LLM
+          handleLLMNewToken: (token) => {
+            this.GPTAnswer = this.GPTAnswer.concat(token);
+            res.write(
+              `data: ${JSON.stringify({
+                data: token,
+                conversationId: conversation.id
+              })}\n\n`
+            );
+          },
+          // When LLM Chain ends, send ending mark and save the final response to the database
+          handleLLMEnd: async () => {
+            // Send the ending mark (marked as [DONE])
+            res.write(
+              `data: ${JSON.stringify({
+                data: this.SSEMARK,
+                conversationId: conversation.id
+              })}\n\n`
+            );
 
-          // Fetch last 5 conversation summary
-          const summaries = await prisma.conversation.findMany({
-            where: {
-              chatId: chatId as string
-            },
-            select: {
-              summary: true
-            },
-            skip: 1,
-            take: 1,
-            orderBy: {
-              createdAt: "desc"
-            }
-          });
+            // Save the answer message
+            const answer = await this.eventService.createAnswer(
+              conversation.id,
+              this.GPTAnswer
+            );
 
-          // Generate new summary
-          memory.clear();
+            // Update the conversation entry to fit both question and answer id
+            await this.eventService.updateConversationConnection(
+              conversation.id,
+              question.id,
+              answer.id
+            );
 
-          await memory.saveContext(
-            { input: content as string },
-            { output: response }
-          );
+            // Generate new summary
+            const summary = await this.eventService.generateNewSummary(
+              chatId,
+              this.userQuestion,
+              this.GPTAnswer
+            );
 
-          const messages = await memory.chatHistory.getMessages();
-          const summary = await memory.predictNewSummary(
-            messages,
-            summaries.length === 0 ? "" : summaries[0].summary
-          );
-
-          await prisma.conversation.update({
-            where: {
-              id: conversation.id
-            },
-            data: {
+            // Update the summary in the database
+            await this.eventService.updateConversationSummary(
+              conversation.id,
               summary
-            }
-          });
+            );
 
-          response = "";
-          res.end();
+            this.GPTAnswer = "";
+            res.end();
+          }
         }
-      }
-    ]
-  });
+      ]
+    });
 
-  const prompt = ChatPromptTemplate.fromMessages([
-    SystemMessagePromptTemplate.fromTemplate(
-      "The following is a conversation between a human and an AI. The AI performs like ChatGPT"
-    ),
-    new MessagesPlaceholder("history"),
-    HumanMessagePromptTemplate.fromTemplate("{question}")
-  ]);
+    // Fetch last conversation summary
+    const summaries = await this.eventService.getChatSummary(chatId);
 
-  const chain = new ConversationChain({
-    llm: model,
-    memory,
-    prompt,
-    verbose: true
-  });
+    const prompt = ChatPromptTemplate.fromMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        "The following is a conversation between a human and an AI. The AI performs like ChatGPT. These are the chat contexts: {context}"
+      ),
+      HumanMessagePromptTemplate.fromTemplate("{input}")
+    ]);
 
-  await chain.predict({
-    question: content as string
-  });
+    const chain = new LLMChain({
+      llm: model,
+      prompt,
+      verbose: true
+    });
 
-  req.on("close", () => {
-    console.log("event closed");
-  });
-};
+    await chain.predict({
+      context: summaries.length === 0 ? "" : summaries[0].summary,
+      input: this.userQuestion
+    });
+
+    req.on("close", () => {
+      console.log("event closed");
+    });
+  };
+}
