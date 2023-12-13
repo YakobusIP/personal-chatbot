@@ -2,14 +2,14 @@ import { Avatar, Flex, Heading, Text, useColorMode } from "@chakra-ui/react";
 import React from "react";
 import Markdown from "react-markdown";
 
-interface Props {
+type Props = {
   author: string;
   content: string;
-}
+};
 
-interface ComponentProps {
+type ComponentProps = {
   children: React.ReactNode;
-}
+};
 
 export default function ChatMessage({ author, content }: Props) {
   const { colorMode } = useColorMode();

@@ -35,6 +35,8 @@ export default function ChatInput({ sendInput }: Props) {
     [sendInput]
   );
 
+  // Event listener for the 'ENTER' key
+  // If 'SHIFT' key is clicked, do not send the message
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
       if (!event.shiftKey && event.key === "Enter") {
@@ -51,6 +53,7 @@ export default function ChatInput({ sendInput }: Props) {
     };
   }, [input, pushInput]);
 
+  // Dynamic text area sizing based on the user's input
   useEffect(() => {
     if (textAreaRef && textAreaRef.current) {
       textAreaRef.current.style.height = "0px";

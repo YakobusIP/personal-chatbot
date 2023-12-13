@@ -1,13 +1,13 @@
 const navbar = {
-  dark: "#1E1E1E",
+  dark: "#222222",
   dark_hover: "#6a6c6e",
-  light: "#F0F0F0",
+  light: "#F8F9FA",
   light_hover: "#cfd0d1"
 };
 
 const background = {
-  dark: "#121212",
-  light: "#FFFFFF"
+  dark: "#2D3438",
+  light: "#F2F3F4"
 };
 
 export const colors = {

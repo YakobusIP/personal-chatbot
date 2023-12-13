@@ -9,7 +9,6 @@ import {
   useToast,
   useBreakpointValue
 } from "@chakra-ui/react";
-import { axiosClient } from "@/lib/axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { FaEdit } from "react-icons/fa";
@@ -18,8 +17,9 @@ import NavbarDrawer from "@/components/navbar/Drawer";
 import Room from "@/types/room.type";
 import ColorSwitch from "./ColorSwitch";
 import { AxiosError } from "axios";
-import { ChatTopicContext } from "@/context/ContextProvider";
+import { GlobalContext } from "@/context/ContextProvider";
 import EditTopicModal from "@/components/navbar/EditTopicModal";
+import { getChatRooms } from "@/context/chat/api";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export default function Navbar() {
   const toast = useToast();
   const { colorMode } = useColorMode();
   const isLg = useBreakpointValue({ base: false, lg: true });
-  const { topic } = useContext(ChatTopicContext);
+  const { topic, setRooms: setContextRoom } = useContext(GlobalContext);
 
   const {
     isOpen: isOpenDrawer,
@@ -42,13 +42,14 @@ export default function Navbar() {
     onClose: onCloseModal
   } = useDisclosure();
 
-  const [rooms, setRoom] = useState<Room[]>();
+  const [rooms, setRooms] = useState<Room[]>();
 
   const fetchRooms = useCallback(async () => {
     try {
-      const response = await axiosClient.get("/chat/room-list");
+      const data = await getChatRooms();
 
-      setRoom(response.data.data);
+      setRooms(data.data);
+      setContextRoom(data.data);
     } catch (error) {
       if (error instanceof AxiosError && error.response) {
         toast({
@@ -60,11 +61,11 @@ export default function Navbar() {
         });
       }
     }
-  }, [toast]);
+  }, [toast, setContextRoom]);
 
   useEffect(() => {
     fetchRooms();
-  }, [fetchRooms, topic]);
+  }, [fetchRooms]);
 
   return (
     <Flex

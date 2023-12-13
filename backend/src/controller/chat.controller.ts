@@ -30,7 +30,7 @@ export class ChatController extends API {
 
       const history = await this.chatService.getChatHistory(chatId);
 
-      return this.send(res, history);
+      return this.send(res, { history: history, topic: chat.topic });
     } catch (error) {
       next(error);
     }
@@ -51,10 +51,10 @@ export class ChatController extends API {
   };
 
   public createNewQuestion: RequestHandler = async (req, res, next) => {
-    type body = z.infer<typeof CreateQuestionSchema>;
-    const { chatId, message }: body = req.body;
-
     try {
+      type body = z.infer<typeof CreateQuestionSchema>;
+      const { chatId, message }: body = req.body;
+
       this.chatService.publishMessageToEE(chatId, message);
       return this.send(res, null);
     } catch (error) {
@@ -63,10 +63,11 @@ export class ChatController extends API {
   };
 
   public updateChatRoomTopic: RequestHandler = async (req, res, next) => {
-    type body = z.infer<typeof UpdateTopicSchema>;
-    const { chatId, topic }: body = req.body;
-
     try {
+      type body = z.infer<typeof UpdateTopicSchema>;
+      const { topic }: body = req.body;
+      const chatId = req.params.chatId;
+
       const chat = await this.chatService.getChatOnId(chatId);
 
       if (!chat) {

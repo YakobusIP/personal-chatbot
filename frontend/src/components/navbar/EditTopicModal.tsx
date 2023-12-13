@@ -1,5 +1,5 @@
-import { ChatTopicContext } from "@/context/ContextProvider";
-import { axiosClient } from "@/lib/axios";
+import { GlobalContext } from "@/context/ContextProvider";
+import { updateChatRoomTopic } from "@/context/chat/api";
 import {
   Button,
   FormControl,
@@ -14,9 +14,9 @@ import {
   ModalOverlay,
   useToast
 } from "@chakra-ui/react";
-import { AxiosError } from "axios";
 import { useContext, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { AxiosError } from "axios";
 
 interface Props {
   isOpen: boolean;
@@ -26,26 +26,24 @@ interface Props {
 export default function EditTopicModal({ isOpen, onClose }: Props) {
   const location = useLocation();
   const toast = useToast();
-  const { topic, setTopic } = useContext(ChatTopicContext);
+  const { topic, setTopic } = useContext(GlobalContext);
   const id = location.pathname.split("/")[2];
 
   const [newTopic, setNewTopic] = useState(topic);
 
   const editTopic = async () => {
     try {
-      const response = await axiosClient.put("/chat/update-topic", {
-        id,
-        topic: newTopic
-      });
+      const data = await updateChatRoomTopic(id, newTopic);
 
       toast({
-        title: response.data.message,
+        title: "Success",
+        description: data.message,
         status: "success",
         duration: 2000,
         position: "top"
       });
 
-      setTopic(response.data.topic);
+      setTopic(data.topic);
       onClose();
     } catch (error) {
       if (error instanceof AxiosError && error.response) {

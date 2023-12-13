@@ -1,29 +1,31 @@
 import { createContext, useState, ReactNode } from "react";
+import { ChatContext } from "./chat/type";
 
 interface Props {
   children: ReactNode;
 }
 
-interface IChatTopicContext {
-  topic: string;
-  setTopic: React.Dispatch<React.SetStateAction<string>>;
-}
+export type GlobalContextType = ChatContext;
 
-const initialValue: IChatTopicContext = {
+const initialValue: GlobalContextType = {
+  rooms: [],
+  setRooms: () => null,
+
   topic: "",
   setTopic: () => null
 };
 
-const ChatTopicContext = createContext<IChatTopicContext>(initialValue);
+const GlobalContext = createContext<GlobalContextType>(initialValue);
 
 const ContextProvider = ({ children }: Props) => {
+  const [rooms, setRooms] = useState(initialValue.rooms);
   const [topic, setTopic] = useState(initialValue.topic);
 
   return (
-    <ChatTopicContext.Provider value={{ topic, setTopic }}>
+    <GlobalContext.Provider value={{ rooms, setRooms, topic, setTopic }}>
       {children}
-    </ChatTopicContext.Provider>
+    </GlobalContext.Provider>
   );
 };
 
-export { ChatTopicContext, ContextProvider };
+export { GlobalContext, ContextProvider };

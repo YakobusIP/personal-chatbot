@@ -2,6 +2,26 @@ import Message from "@/types/message.type";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const addMessageToList = (
+  prevMessages: Message[],
+  id: string,
+  author: string,
+  content: string,
+  conversationQuestionId: string | null,
+  conversationAnswerId: string | null
+) => {
+  return [
+    ...prevMessages,
+    {
+      id: id,
+      author: author,
+      content: content,
+      conversationQuestionId: conversationQuestionId,
+      conversationAnswerId: conversationAnswerId
+    }
+  ];
+};
+
 const updateQuestionId = (
   prevMessages: Message[],
   questionIndex: number,
@@ -49,4 +69,10 @@ const appendAnswerChunk = (
   ];
 };
 
-export { updateQuestionId, addAnswerToList, appendAnswerChunk, sleep };
+export {
+  addMessageToList,
+  updateQuestionId,
+  addAnswerToList,
+  appendAnswerChunk,
+  sleep
+};

@@ -14,21 +14,21 @@ class ChatRouter {
   }
 
   public routes(): void {
-    this.router.get("/room-list", this.controller.getChatRooms);
-    this.router.get("/history/:chatId", this.controller.getChatHistory);
-    this.router.post("/", this.controller.createNewChatRoom);
+    this.router.get("/rooms", this.controller.getChatRooms);
+    this.router.get("/:chatId/history", this.controller.getChatHistory);
+    this.router.post("/create-room", this.controller.createNewChatRoom);
     this.router.post(
-      "/question",
+      "/add-question",
       validateMiddleware(CreateQuestionSchema),
       this.controller.createNewQuestion
     );
-    this.router.put(
-      "/update-topic",
+    this.router.patch(
+      "/:chatId/update-topic",
       validateMiddleware(UpdateTopicSchema),
       this.controller.updateChatRoomTopic
     );
-    this.router.delete("/", this.controller.deleteAllChat);
-    this.router.delete("/:chatId", this.controller.deleteChatOnId);
+    this.router.delete("/delete-all", this.controller.deleteAllChat);
+    this.router.delete("/:chatId/delete", this.controller.deleteChatOnId);
   }
 }
 

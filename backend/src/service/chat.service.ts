@@ -4,7 +4,8 @@ import { eventEmitter } from "../lib/event";
 export default class ChatService {
   public async getChatRooms() {
     return await prisma.chat.findMany({
-      select: { id: true, topic: true }
+      select: { id: true, topic: true },
+      orderBy: { createdAt: "asc" }
     });
   }
 

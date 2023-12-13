@@ -13,12 +13,15 @@ import {
   useColorMode,
   DrawerFooter,
   Button,
-  useDisclosure
+  useDisclosure,
+  useToast
 } from "@chakra-ui/react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import RoomNumber from "@/components/navbar/RoomNumber";
 import { useNavigate } from "react-router-dom";
 import ManageChatModal from "./ManageChatModal";
+import { createNewChatRoom } from "@/context/chat/api";
+import { AxiosError } from "axios";
 
 interface Props {
   rooms: Room[] | undefined;
@@ -29,12 +32,39 @@ interface Props {
 export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
   const { colorMode } = useColorMode();
   const navigate = useNavigate();
+  const toast = useToast();
 
   const {
     isOpen: isOpenManage,
     onClose: onCloseManage,
     onOpen: onOpenManage
   } = useDisclosure();
+
+  const createNewRoom = async () => {
+    try {
+      const data = await createNewChatRoom();
+
+      navigate(`/chat/${data.data.id}`);
+
+      toast({
+        title: "Success",
+        description: data.message,
+        status: "success",
+        duration: 2000,
+        position: "top"
+      });
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        toast({
+          title: "Error",
+          description: error.response.data.message,
+          status: "error",
+          duration: 2000,
+          position: "top"
+        });
+      }
+    }
+  };
 
   return (
     <Drawer isOpen={isOpen} onClose={onClose} placement="left">
@@ -69,7 +99,10 @@ export default function NavbarDrawer({ rooms, isOpen, onClose }: Props) {
               })}
           </VStack>
         </DrawerBody>
-        <DrawerFooter>
+        <DrawerFooter flexDir={"column"} rowGap={4}>
+          <Button w={"full"} onClick={() => createNewRoom()}>
+            Create New Chat
+          </Button>
           <Button w={"full"} onClick={onOpenManage}>
             Manage Chats
           </Button>

@@ -6,7 +6,6 @@ import {
   useToast,
   useBreakpointValue
 } from "@chakra-ui/react";
-import { axiosClient } from "@/lib/axios";
 import { useLocation, useParams } from "react-router-dom";
 import { useCallback, useContext, useEffect, useState } from "react";
 import RootLayout from "@/components/RootLayout";
@@ -15,14 +14,16 @@ import ChatMessage from "@/pages/Chat/ChatMessage";
 import Message from "@/types/message.type";
 import { IoMdArrowDown } from "react-icons/io";
 import { AxiosError, HttpStatusCode } from "axios";
-import { ChatTopicContext } from "@/context/ContextProvider";
+import { GlobalContext } from "@/context/ContextProvider";
 import Chunk from "@/types/chunk.type";
 import {
   addAnswerToList,
+  addMessageToList,
   appendAnswerChunk,
   sleep,
   updateQuestionId
 } from "./ChatService";
+import { createNewQuestion, getChatHistory } from "@/context/chat/api";
 
 export default function Chat() {
   const toast = useToast();
@@ -33,30 +34,30 @@ export default function Chat() {
 
   const { colorMode } = useColorMode();
   const isLg = useBreakpointValue({ base: false, lg: true });
-  const { setTopic } = useContext(ChatTopicContext);
+  const { setTopic } = useContext(GlobalContext);
 
   const [messages, setMessages] = useState<Message[]>([]);
 
   const fetchChatHistory = useCallback(
     async (chatId: string) => {
       try {
-        const response = await axiosClient.get(`/chat/history/${chatId}`);
+        const data = await getChatHistory(chatId);
 
-        const messageArray = response.data.data as Message[];
+        const messageArray = data.data.history as Message[];
 
-        setTopic(response.data.topic);
+        setTopic(data.data.topic);
 
         messageArray.map((message) => {
-          setMessages((prevMessage) => [
-            ...prevMessage,
-            {
-              id: message.id,
-              author: message.author,
-              content: message.content,
-              conversationQuestionId: message.conversationQuestionId,
-              conversationAnswerId: message.conversationAnswerId
-            }
-          ]);
+          setMessages((prevMessage) =>
+            addMessageToList(
+              prevMessage,
+              message.id,
+              message.author,
+              message.content,
+              message.conversationQuestionId,
+              message.conversationAnswerId
+            )
+          );
         });
       } catch (error) {
         if (error instanceof AxiosError && error.response) {
@@ -88,24 +89,21 @@ export default function Chat() {
         conversationAnswerId: null
       };
 
-      setMessages((prevMessage) => [
-        ...prevMessage,
-        {
-          id: data.id,
-          author: data.author,
-          content: data.content,
-          conversationQuestionId: data.conversationQuestionId,
-          conversationAnswerId: data.conversationAnswerId
-        }
-      ]);
+      setMessages((prevMessage) =>
+        addMessageToList(
+          prevMessage,
+          data.id,
+          data.author,
+          data.content,
+          data.conversationQuestionId,
+          data.conversationAnswerId
+        )
+      );
 
-      const response = await axiosClient.post("/chat/question", {
-        chatId: chatId,
-        message: data.content
-      });
+      const status = await createNewQuestion(chatId, data.content);
 
-      if (response.status === HttpStatusCode.Ok) {
-        await sleep(1000);
+      if (status === HttpStatusCode.Ok) {
+        await sleep(5000);
         const events = new EventSource(
           `${import.meta.env.VITE_BASE_AXIOS_URL}/event/sse?chatId=${chatId}`
         );

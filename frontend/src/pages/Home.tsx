@@ -1,29 +1,36 @@
 import {
   Button,
   Flex,
+  HStack,
   Heading,
   Image,
+  Text,
   useColorMode,
   useToast
 } from "@chakra-ui/react";
-import { axiosClient } from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import RootLayout from "@/components/RootLayout";
 import { AxiosError } from "axios";
+import { createNewChatRoom } from "@/context/chat/api";
+import { useContext } from "react";
+import { GlobalContext } from "@/context/ContextProvider";
+import RoomNumber from "@/components/navbar/RoomNumber";
 
 export default function Home() {
   const toast = useToast();
   const navigate = useNavigate();
   const { colorMode } = useColorMode();
+  const { rooms } = useContext(GlobalContext);
 
   const createNewRoom = async () => {
     try {
-      const response = await axiosClient.post("/chat");
+      const data = await createNewChatRoom();
 
-      navigate(`/chat/${response.data.data.id}`);
+      navigate(`/chat/${data.data.id}`);
 
       toast({
-        title: response.data.message,
+        title: "Success",
+        description: data.message,
         status: "success",
         duration: 2000,
         position: "top"
@@ -63,6 +70,17 @@ export default function Home() {
         />
         <Heading textAlign={"center"}>How can I help you today?</Heading>
         <Button onClick={() => createNewRoom()}>Create new chat</Button>
+        <Text fontWeight={700} mt={8}>
+          Your recent chats
+        </Text>
+        <HStack gap={4}>
+          {rooms &&
+            rooms.slice(0, 5).map((room) => {
+              return (
+                <RoomNumber key={room.id} id={room.id} topic={room.topic} />
+              );
+            })}
+        </HStack>
       </Flex>
     </RootLayout>
   );

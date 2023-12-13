@@ -1,4 +1,3 @@
-import { axiosClient } from "@/lib/axios";
 import Room from "@/types/room.type";
 import {
   Button,
@@ -17,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
+import { deleteAllChat, deleteChatOnId } from "@/context/chat/api";
 
 interface Props {
   rooms: Room[] | undefined;
@@ -29,12 +29,13 @@ export default function ManageChatModal({ rooms, isOpen, onClose }: Props) {
   const navigate = useNavigate();
   const { colorMode } = useColorMode();
 
-  const deleteAllChat = async () => {
+  const deleteAll = async () => {
     try {
-      const response = await axiosClient.delete("/chat/");
+      const data = await deleteAllChat();
 
       toast({
-        title: response.data.message,
+        title: "Success",
+        description: data.message,
         status: "success",
         duration: 2000,
         position: "top"
@@ -55,12 +56,13 @@ export default function ManageChatModal({ rooms, isOpen, onClose }: Props) {
     }
   };
 
-  const deleteChatOnId = async (id: string) => {
+  const deleteOnId = async (id: string) => {
     try {
-      const response = await axiosClient.delete(`/chat/${id}`);
+      const data = await deleteChatOnId(id);
 
       toast({
-        title: response.data.message,
+        title: "Success",
+        description: data.message,
         status: "success",
         duration: 2000,
         position: "top"
@@ -87,7 +89,7 @@ export default function ManageChatModal({ rooms, isOpen, onClose }: Props) {
       <ModalContent>
         <ModalHeader>Manage chats</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
+        <ModalBody maxH={"50vh"} overflowY={"auto"}>
           <VStack>
             {rooms && rooms.length > 0 ? (
               rooms.map((room) => {
@@ -107,9 +109,7 @@ export default function ManageChatModal({ rooms, isOpen, onClose }: Props) {
                     <Text key={room.id} w={"full"}>
                       {room.topic}
                     </Text>
-                    <Button onClick={() => deleteChatOnId(room.id)}>
-                      Delete
-                    </Button>
+                    <Button onClick={() => deleteOnId(room.id)}>Delete</Button>
                   </HStack>
                 );
               })
@@ -120,7 +120,7 @@ export default function ManageChatModal({ rooms, isOpen, onClose }: Props) {
         </ModalBody>
         <ModalFooter gap={4}>
           {rooms && rooms.length > 0 && (
-            <Button w={"full"} onClick={() => deleteAllChat()}>
+            <Button w={"full"} onClick={() => deleteAll()}>
               Delete All
             </Button>
           )}
